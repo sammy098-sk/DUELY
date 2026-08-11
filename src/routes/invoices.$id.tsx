@@ -227,17 +227,17 @@ function InvoiceDetail() {
               <li key={r.id} className="space-y-2 px-5 py-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="label-caps">{new Date(r.sent_at).toLocaleString()}</span>
-                  <span className="rounded-sm border border-border px-2 py-0.5 font-mono text-[0.65rem] tracking-widest uppercase">
+                  <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
                     {r.channel}
                   </span>
-                  <span className="rounded-sm border border-border px-2 py-0.5 font-mono text-[0.65rem] tracking-widest uppercase">
+                  <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
                     {r.tone}
                   </span>
                   <span
                     className={
                       r.status === "sent"
-                        ? "font-mono text-[0.65rem] tracking-widest text-stamp-paid uppercase"
-                        : "font-mono text-[0.65rem] tracking-widest text-stamp-overdue uppercase"
+                        ? "text-[0.7rem] font-semibold text-stamp-paid uppercase"
+                        : "text-[0.7rem] font-semibold text-stamp-overdue uppercase"
                     }
                   >
                     {r.status}

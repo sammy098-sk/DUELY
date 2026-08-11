@@ -95,8 +95,8 @@ function AuthPage() {
                 onClick={() => setMode(m)}
                 className={
                   mode === m
-                    ? "font-mono text-xs tracking-widest uppercase underline decoration-accent decoration-2 underline-offset-8"
-                    : "font-mono text-xs tracking-widest text-muted-foreground uppercase"
+                    ? "text-sm font-medium uppercase underline decoration-accent decoration-2 underline-offset-8"
+                    : "text-sm font-medium text-muted-foreground uppercase"
                 }
               >
                 {m === "signin" ? "Sign in" : "Create account"}
