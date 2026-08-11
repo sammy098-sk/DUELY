@@ -78,21 +78,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Duely — Invoice reminders that chase for you" },
+      { title: "Duely — Your invoice ledger" },
       {
         name: "description",
         content:
-          "Duely creates invoices for freelancers and chases unpaid ones automatically with AI-drafted email and WhatsApp reminders.",
+          "Track outstanding, overdue and paid invoices at a glance while Duely chases payment for you.",
       },
       { name: "author", content: "Duely" },
-      { property: "og:title", content: "Duely — Invoice reminders that chase for you" },
+      { property: "og:title", content: "Duely — Your invoice ledger" },
       {
         property: "og:description",
         content:
-          "Send invoices, then let Duely follow up every 3 days until you get paid.",
+          "Track outstanding, overdue and paid invoices at a glance while Duely chases payment for you.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Duely — Your invoice ledger" },
+      { name: "twitter:description", content: "Track outstanding, overdue and paid invoices at a glance while Duely chases payment for you." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/10e3d00e72a3a8e6a8e08d84cae4db53/id-preview-25f963f1--1164f157-f2c0-411f-955a-6e2b3fe8abf0.lovable.app-1786467318368.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/10e3d00e72a3a8e6a8e08d84cae4db53/id-preview-25f963f1--1164f157-f2c0-411f-955a-6e2b3fe8abf0.lovable.app-1786467318368.png" },
     ],
     links: [
       {

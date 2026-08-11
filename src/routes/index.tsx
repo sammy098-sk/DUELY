@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Duely — Your invoice ledger" },
       {
         property: "og:description",
-        content: "Outstanding, overdue and paid totals with automatic payment reminders.",
+        content: "Track outstanding, overdue and paid invoices at a glance while Duely chases payment for you.",
       },
     ],
   }),
