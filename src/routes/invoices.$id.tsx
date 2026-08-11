@@ -79,7 +79,10 @@ function InvoiceDetail() {
       .from("invoices")
       .update({ status: "paid", paid_at: new Date().toISOString() })
       .eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Marked as paid. Chasing stopped.");
     qc.invalidateQueries({ queryKey: ["invoice", id] });
     qc.invalidateQueries({ queryKey: ["invoices"] });

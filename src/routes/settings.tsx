@@ -65,7 +65,10 @@ function Settings() {
     setBusy(true);
     const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Settings saved.");
   }
 
