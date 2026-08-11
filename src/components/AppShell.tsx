@@ -33,19 +33,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="no-print border-b border-border bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
           <Link to="/" className="flex items-baseline gap-2">
-            <span className="font-serif text-2xl leading-none">Duely</span>
+            <span className="font-serif text-2xl leading-none font-extrabold text-primary">Duely</span>
             <span className="label-caps hidden sm:inline">invoice reminders</span>
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-2">
             {nav.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "font-mono text-xs tracking-widest uppercase transition-colors",
+                  "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
                   pathname === item.to
-                    ? "text-foreground underline decoration-accent decoration-2 underline-offset-8"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -57,10 +57,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               await supabase.auth.signOut();
               navigate({ to: "/auth" });
             }}
-            className="ml-auto inline-flex items-center gap-1.5 font-mono text-xs tracking-widest text-muted-foreground uppercase hover:text-foreground"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            <LogOut className="size-3.5" /> Out
+            <LogOut className="size-4" /> Sign out
           </button>
+
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>
