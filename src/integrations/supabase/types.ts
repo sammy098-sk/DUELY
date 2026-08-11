@@ -14,7 +14,205 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          position: number
+          quantity: number
+          unit_price: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id: string
+          position?: number
+          quantity?: number
+          unit_price?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          position?: number
+          quantity?: number
+          unit_price?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_address: string
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          currency: string
+          discount: number
+          due_date: string
+          id: string
+          issue_date: string
+          last_reminder_at: string | null
+          notes: string
+          number: string
+          paid_at: string | null
+          reminder_count: number
+          status: string
+          subtotal: number
+          tax_rate: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_address?: string
+          client_email?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          currency?: string
+          discount?: number
+          due_date?: string
+          id?: string
+          issue_date?: string
+          last_reminder_at?: string | null
+          notes?: string
+          number: string
+          paid_at?: string | null
+          reminder_count?: number
+          status?: string
+          subtotal?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_address?: string
+          client_email?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          currency?: string
+          discount?: number
+          due_date?: string
+          id?: string
+          issue_date?: string
+          last_reminder_at?: string | null
+          notes?: string
+          number?: string
+          paid_at?: string | null
+          reminder_count?: number
+          status?: string
+          subtotal?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string
+          bank_details: string
+          business_name: string
+          contact_email: string
+          created_at: string
+          default_currency: string
+          id: string
+          phone: string
+          reminders_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          bank_details?: string
+          business_name?: string
+          contact_email?: string
+          created_at?: string
+          default_currency?: string
+          id: string
+          phone?: string
+          reminders_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          bank_details?: string
+          business_name?: string
+          contact_email?: string
+          created_at?: string
+          default_currency?: string
+          id?: string
+          phone?: string
+          reminders_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          body: string
+          channel: string
+          error: string | null
+          id: string
+          invoice_id: string
+          sent_at: string
+          status: string
+          subject: string
+          tone: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          channel?: string
+          error?: string | null
+          id?: string
+          invoice_id: string
+          sent_at?: string
+          status?: string
+          subject?: string
+          tone?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          error?: string | null
+          id?: string
+          invoice_id?: string
+          sent_at?: string
+          status?: string
+          subject?: string
+          tone?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
