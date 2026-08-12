@@ -89,8 +89,9 @@ function AuthPage() {
               <div className="absolute right-[6%] top-14 size-28 rounded-[1.75rem] border border-primary/40 bg-secondary [transform:rotateX(55deg)_rotateZ(-25deg)]" />
               <div className="absolute left-[24%] top-24 size-24 rounded-full bg-primary/70" />
 
-              <div className="absolute -inset-6 bg-background/20 backdrop-blur-md" />
-              <div className="absolute -inset-6 bg-gradient-to-b from-transparent via-background/25 to-background" />
+              <div className="absolute -inset-6 bg-background/45 backdrop-blur-[3px]" />
+              <div className="absolute -inset-6 bg-gradient-to-b from-background/30 via-background/50 to-background" />
+
 
             </div>
           </div>
