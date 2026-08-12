@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       .then(({ data }) => {
         setName(
           data?.business_name ||
-            (user.user_metadata?.business_name as string) ||
+            (user.user_metadata?.["business_name"] as string) ||
             user.email?.split("@")[0] ||
             "there",
         );
