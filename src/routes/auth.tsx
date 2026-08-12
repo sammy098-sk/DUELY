@@ -78,14 +78,31 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-5 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="font-serif text-5xl">Duely</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+        <div className="relative mb-8 text-center">
+          {/* Layered asymmetric 3D shapes, veiled by a soft white layer */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-32 h-56">
+            <div className="relative mx-auto h-full w-full max-w-sm [perspective:900px]">
+              <div className="absolute left-[10%] top-8 size-32 rounded-[2.25rem] bg-primary [transform:rotateX(48deg)_rotateZ(38deg)]" />
+              <div className="absolute left-[36%] top-0 size-40 rounded-full bg-accent" />
+              <div className="absolute right-[6%] top-14 size-28 rounded-[1.75rem] border border-primary/40 bg-secondary [transform:rotateX(55deg)_rotateZ(-25deg)]" />
+              <div className="absolute left-[24%] top-24 size-24 rounded-full bg-primary/70" />
+
+              <div className="absolute -inset-6 bg-background/45 backdrop-blur-[3px]" />
+              <div className="absolute -inset-6 bg-gradient-to-b from-background/30 via-background/50 to-background" />
+
+
+            </div>
+          </div>
+
+
+          <h1 className="relative font-serif text-5xl">Duely</h1>
+          <p className="relative mt-2 text-sm text-muted-foreground">
             Boring, deadly accurate invoice chasing for freelancers.
           </p>
         </div>
+
 
         <div className="ledger-panel p-6">
           <div className="mb-5 flex gap-4">

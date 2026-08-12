@@ -1,24 +1,56 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
-import { LogOut } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { LogOut, Menu, FilePlus2, LayoutList, Settings as SettingsIcon, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const nav = [
-  { to: "/", label: "Ledger" },
-  { to: "/invoices/new", label: "New invoice" },
-  { to: "/settings", label: "Settings" },
+  { to: "/", label: "Ledger", icon: LayoutList },
+  { to: "/invoices/new", label: "New invoice", icon: FilePlus2 },
+  { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
+
+function greeting(d = new Date()) {
+  const h = d.getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Good night";
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState<string>("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("business_name")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setName(
+          data?.business_name ||
+            (user.user_metadata?.["business_name"] as string) ||
+            user.email?.split("@")[0] ||
+            "there",
+        );
+      });
+  }, [user]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   if (loading || !user) {
     return (
@@ -30,38 +62,73 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <header className="no-print border-b border-border bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
-          <Link to="/" className="flex items-baseline gap-2">
-            <span className="font-serif text-2xl leading-none font-extrabold text-primary">Duely</span>
-            <span className="label-caps hidden sm:inline">invoice reminders</span>
-          </Link>
-          <nav className="flex items-center gap-2">
-            {nav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
-                  pathname === item.to
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate({ to: "/auth" });
-            }}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <LogOut className="size-4" /> Sign out
-          </button>
+      <header className="no-print sticky top-0 z-40 border-b border-border bg-card/70 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-3">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger
+              aria-label="Open menu"
+              className="inline-flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
+            >
+              <Menu className="size-5" />
+            </SheetTrigger>
+            <SheetContent side="left" className="flex w-[19rem] flex-col gap-0 p-0">
+              <div className="shrink-0 border-b border-border bg-muted/50 p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-11 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <User className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-semibold">{name || "Your profile"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+                <Link
+                  to="/settings"
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  View profile
+                </Link>
+              </div>
 
+              <nav className="flex-1 overflow-y-auto p-3">
+                <p className="label-caps px-3 pt-2 pb-1">Menu</p>
+                {nav.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                      pathname === item.to
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <item.icon className="size-4" />
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+
+              <div className="shrink-0 border-t border-border p-3">
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigate({ to: "/auth" });
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <LogOut className="size-4" /> Sign out
+                </button>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <div className="ml-auto text-right leading-tight">
+            <p className="label-caps">{greeting()}</p>
+            <p className="max-w-[14rem] truncate text-sm font-semibold sm:max-w-none">
+              {name || "…"}
+            </p>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>
