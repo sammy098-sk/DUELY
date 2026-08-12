@@ -82,16 +82,17 @@ function AuthPage() {
       <div className="w-full max-w-md">
         <div className="relative mb-8 text-center">
           {/* Layered asymmetric 3D shapes, veiled by a soft white layer */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-28 h-64">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-32 h-56">
             <div className="relative mx-auto h-full w-full max-w-sm [perspective:900px]">
-              <div className="absolute left-[14%] top-6 size-28 rounded-[2rem] bg-gradient-to-br from-primary to-primary/40 opacity-70 [transform:rotateX(48deg)_rotateZ(38deg)]" />
-              <div className="absolute left-[38%] top-0 size-36 rounded-full bg-gradient-to-tr from-accent to-primary/30 opacity-60 blur-[2px]" />
-              <div className="absolute right-[10%] top-16 size-24 rounded-[1.75rem] border border-primary/30 bg-secondary/80 opacity-80 [transform:rotateX(55deg)_rotateZ(-25deg)]" />
-              <div className="absolute left-[26%] top-24 size-20 rounded-full bg-accent/70 opacity-70" />
-              <div className="absolute inset-0 bg-background/70 backdrop-blur-2xl" />
-              <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
+              <div className="absolute left-[10%] top-8 size-32 rounded-[2.25rem] bg-gradient-to-br from-primary to-primary/50 [transform:rotateX(48deg)_rotateZ(38deg)]" />
+              <div className="absolute left-[36%] top-0 size-40 rounded-full bg-gradient-to-tr from-accent via-accent/70 to-primary/50" />
+              <div className="absolute right-[6%] top-14 size-28 rounded-[1.75rem] border border-primary/40 bg-primary/25 [transform:rotateX(55deg)_rotateZ(-25deg)]" />
+              <div className="absolute left-[24%] top-24 size-24 rounded-full bg-accent/80" />
+              <div className="absolute -inset-6 bg-background/45 backdrop-blur-xl" />
+              <div className="absolute -inset-6 bg-gradient-to-b from-background/10 via-background/55 to-background" />
             </div>
           </div>
+
 
           <h1 className="relative font-serif text-5xl">Duely</h1>
           <p className="relative mt-2 text-sm text-muted-foreground">
