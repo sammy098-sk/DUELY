@@ -78,14 +78,27 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-5 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="font-serif text-5xl">Duely</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+        <div className="relative mb-8 text-center">
+          {/* Layered asymmetric 3D shapes, veiled by a soft white layer */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-28 h-64">
+            <div className="relative mx-auto h-full w-full max-w-sm [perspective:900px]">
+              <div className="absolute left-[14%] top-6 size-28 rounded-[2rem] bg-gradient-to-br from-primary to-primary/40 opacity-70 [transform:rotateX(48deg)_rotateZ(38deg)]" />
+              <div className="absolute left-[38%] top-0 size-36 rounded-full bg-gradient-to-tr from-accent to-primary/30 opacity-60 blur-[2px]" />
+              <div className="absolute right-[10%] top-16 size-24 rounded-[1.75rem] border border-primary/30 bg-secondary/80 opacity-80 [transform:rotateX(55deg)_rotateZ(-25deg)]" />
+              <div className="absolute left-[26%] top-24 size-20 rounded-full bg-accent/70 opacity-70" />
+              <div className="absolute inset-0 bg-background/70 backdrop-blur-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background" />
+            </div>
+          </div>
+
+          <h1 className="relative font-serif text-5xl">Duely</h1>
+          <p className="relative mt-2 text-sm text-muted-foreground">
             Boring, deadly accurate invoice chasing for freelancers.
           </p>
         </div>
+
 
         <div className="ledger-panel p-6">
           <div className="mb-5 flex gap-4">
