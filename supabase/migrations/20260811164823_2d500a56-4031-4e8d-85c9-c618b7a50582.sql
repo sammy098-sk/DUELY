@@ -90,4 +90,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.reminders TO authenticated;
 GRANT ALL ON public.reminders TO service_role;
 ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own reminders" ON public.reminders FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE INDEX reminders_invoice_idx ON public.reminders(invoice_id, sent_at DESC);
+CREATE INDEX reminders_invoice_idx ON public.reminders(invoice_id, sent_at);
