@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
@@ -11,33 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/invoices/new")({
-  head: () => ({
-    meta: [
-      { title: "New invoice — Duely" },
-      {
-        name: "description",
-        content:
-          "Build an invoice with line items, tax and discounts, and live totals as you type.",
-      },
-      { property: "og:title", content: "New invoice — Duely" },
-      {
-        property: "og:description",
-        content: "Clean invoice builder with live totals for freelancers.",
-      },
-    ],
-  }),
-  component: () => (
-    <AppShell>
-      <NewInvoice />
-    </AppShell>
-  ),
-});
-
 const today = () => new Date().toISOString().slice(0, 10);
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
 
-function NewInvoice() {
+export default function NewInvoice() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [number, setNumber] = useState("");
@@ -118,7 +95,7 @@ function NewInvoice() {
       }
 
       toast.success(status === "draft" ? "Saved as draft." : "Invoice issued — chasing begins.");
-      navigate({ to: "/invoices/$id", params: { id: invoice.id } });
+      navigate(`/invoices/${invoice.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save invoice");
     } finally {

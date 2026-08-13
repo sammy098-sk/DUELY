@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import { LogOut, Menu, FilePlus2, LayoutList, Settings as SettingsIcon, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,12 +23,12 @@ function greeting(d = new Date()) {
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState<string>("");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate("/auth");
   }, [loading, user, navigate]);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <button
                   onClick={async () => {
                     await supabase.auth.signOut();
-                    navigate({ to: "/auth" });
+                    navigate("/auth");
                   }}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >

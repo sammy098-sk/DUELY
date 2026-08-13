@@ -1,13 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BellRing, CheckCircle2, Printer } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StampBadge } from "@/components/StampBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { sendReminderNow } from "@/lib/reminders.functions";
 import {
   computeTotals,
   effectiveStatus,
@@ -17,33 +15,9 @@ import {
 } from "@/lib/invoice";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/invoices/$id")({
-  head: () => ({
-    meta: [
-      { title: "Invoice — Duely" },
-      {
-        name: "description",
-        content:
-          "View an invoice, download it as a PDF and see every payment reminder Duely has sent.",
-      },
-      { property: "og:title", content: "Invoice — Duely" },
-      {
-        property: "og:description",
-        content: "Invoice detail with reminder history and PDF download.",
-      },
-    ],
-  }),
-  component: () => (
-    <AppShell>
-      <InvoiceDetail />
-    </AppShell>
-  ),
-});
-
-function InvoiceDetail() {
-  const { id } = Route.useParams();
+export default function InvoiceDetail() {
+  const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
-  const send = useServerFn(sendReminderNow);
   const [sending, setSending] = useState(false);
 
   const { data } = useQuery({
@@ -91,12 +65,15 @@ function InvoiceDetail() {
   async function chase() {
     setSending(true);
     try {
-      const res = await send({ data: { invoiceId: id } });
-      const failed = res.channels.filter((c) => c.status === "failed");
-      if (failed.length === res.channels.length) {
+      const { data, error } = await supabase.functions.invoke("run-reminders", {
+        body: { invoiceId: id },
+      });
+      if (error) throw error;
+      const failed = data.channels.filter((c: any) => c.status === "failed");
+      if (failed.length === data.channels.length) {
         toast.error(`Draft written but not delivered: ${failed[0]?.error ?? "no channel"}`);
       } else {
-        toast.success(`${res.tone} reminder sent.`);
+        toast.success(`${data.tone} reminder sent.`);
       }
       qc.invalidateQueries({ queryKey: ["invoice", id] });
     } catch (err) {
@@ -107,7 +84,8 @@ function InvoiceDetail() {
   }
 
   return (
-    <div className="space-y-8">
+    <AppShell>
+      <div className="space-y-8">
       <div className="no-print flex flex-wrap items-center gap-3">
         <Button onClick={chase} disabled={sending || status === "paid" || status === "draft"}>
           <BellRing className="size-4" /> {sending ? "Drafting…" : "Send reminder now"}
@@ -252,6 +230,7 @@ function InvoiceDetail() {
         )}
       </section>
     </div>
+    </AppShell>
   );
 }
 
