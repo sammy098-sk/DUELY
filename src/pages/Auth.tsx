@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,12 @@ import { Eye, EyeOff, Loader2, FileText, CheckCircle2, ShieldCheck } from "lucid
 export default function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signup");
+  const [searchParams] = useSearchParams();
+
+  const queryMode = searchParams.get("mode");
+  const [mode, setMode] = useState<"signin" | "signup">(
+    queryMode === "signin" ? "signin" : "signup"
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +26,16 @@ export default function AuthPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    if (!loading && user) navigate("/");
+    if (queryMode === "signin" || queryMode === "signup") {
+      setMode(queryMode);
+    }
+  }, [queryMode]);
+
+  // If a user is already authenticated and visits /auth, send them to their authenticated workspace (/welcome)
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/welcome", { replace: true });
+    }
   }, [loading, user, navigate]);
 
   function switchMode(m: "signin" | "signup") {
@@ -57,7 +71,7 @@ export default function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/welcome`,
             data: { full_name: fullName, business_name: fullName },
           },
         });
@@ -66,7 +80,9 @@ export default function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        toast.success("Signed in successfully.");
       }
+      navigate("/welcome", { replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
     } finally {
@@ -77,15 +93,14 @@ export default function AuthPage() {
   async function google() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/welcome` },
     });
     if (error) toast.error("Google sign-in failed. Try email instead.");
   }
 
   return (
-    <div className="relative min-h-screen bg-[#f3f4f6] flex flex-col items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-10">
-
-      {/* Decorative concentric rings in background corners (matching reference image background) */}
+    <div className="relative min-h-screen bg-[#f3f4f6] dark:bg-[#0E1217] flex flex-col items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-10 transition-colors">
+      {/* Decorative concentric rings in background corners */}
       <div className="pointer-events-none absolute -right-16 -top-16 opacity-30 text-border">
         <ConcentricRings />
       </div>
@@ -93,15 +108,11 @@ export default function AuthPage() {
         <ConcentricRings />
       </div>
 
-      {/* ── DESKTOP LAYOUT (lg+): Matching Desktop Reference Image Composition ── */}
+      {/* ── DESKTOP LAYOUT (lg+) ── */}
       <div className="relative z-10 hidden w-full max-w-[1060px] lg:block">
-        <div
-          className="grid w-full grid-cols-12 rounded-[28px] border border-border/60 bg-card p-3.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.08)]"
-        >
-          {/* LEFT PANEL: Vibrant Navy Product Panel with Arch Illustration & Floating Invoice Card */}
+        <div className="grid w-full grid-cols-12 rounded-[28px] border border-border/60 bg-card p-3.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.08)]">
+          {/* LEFT PANEL */}
           <div className="col-span-5 flex flex-col justify-between rounded-[22px] bg-foreground p-8 text-background relative overflow-hidden min-h-[580px]">
-            
-            {/* Concentric rings watermark inside top-left and bottom-right of left panel */}
             <div className="pointer-events-none absolute -left-12 -top-12 opacity-15 text-background">
               <ConcentricRings />
             </div>
@@ -119,13 +130,10 @@ export default function AuthPage() {
               </p>
             </div>
 
-            {/* Center Product Illustration: Arch Shape Container + Floating Invoice Card */}
+            {/* Center Product Illustration */}
             <div className="relative z-10 my-auto py-6 flex flex-col items-center justify-center">
-              {/* Arch Background Container */}
               <div className="relative flex flex-col items-center justify-center w-[220px] h-[250px] rounded-t-full bg-background/10 border border-background/10 p-4">
-                
-                {/* Floating Micro Status Badges */}
-                <div className="absolute top-6 -left-4 rounded-full bg-background text-foreground px-2.5 py-1 text-[10px] font-bold shadow-md flex items-center gap-1 animate-bounce">
+                <div className="absolute top-6 -left-4 rounded-full bg-background text-foreground px-2.5 py-1 text-[10px] font-bold shadow-md flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Reminder Sent
                 </div>
@@ -135,8 +143,7 @@ export default function AuthPage() {
                   Paid
                 </div>
 
-                {/* Floating Invoice Summary Card */}
-                <div className="w-[190px] rounded-xl bg-background text-foreground p-4 shadow-xl border border-border/40 rotate-[-1deg] transition-transform hover:rotate-0 duration-300">
+                <div className="w-[190px] rounded-xl bg-background text-foreground p-4 shadow-xl border border-border/40 rotate-[-1deg]">
                   <div className="flex items-center justify-between border-b border-rule pb-2.5 mb-2.5">
                     <span className="font-mono text-[10px] font-bold text-muted-foreground">#0048</span>
                     <span className="font-mono text-[10px] text-muted-foreground">DUE AUG 18</span>
@@ -153,7 +160,7 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* Bottom Product Quote & Author Badge */}
+            {/* Bottom Product Quote */}
             <div className="relative z-10">
               <p className="text-[12.5px] leading-relaxed text-background/85">
                 "Duely follows up on unpaid invoices automatically so freelancers get paid on time without awkward emails."
@@ -170,11 +177,9 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* RIGHT PANEL: Authentication Form (Col 7) */}
+          {/* RIGHT PANEL: Authentication Form */}
           <div className="col-span-7 flex flex-col justify-center px-8 py-6 xl:px-12 xl:py-8">
             <div className="mx-auto w-full max-w-[440px]">
-              
-              {/* Form Heading & Subtitle */}
               <div className="mb-5">
                 <h1 className="text-[26px] font-bold leading-tight tracking-[-0.03em] text-foreground">
                   {mode === "signin" ? "Welcome Back" : "Create Your Account"}
@@ -188,7 +193,7 @@ export default function AuthPage() {
 
               {/* Tab Switcher */}
               <div className="mb-5 flex border-b border-border/50">
-                {(["signup", "signin"] as const).map((m) => (
+                {(["signin", "signup"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -205,25 +210,23 @@ export default function AuthPage() {
                 ))}
               </div>
 
-              {/* Social Login Button at Top */}
+              {/* Social Login */}
               <button
                 type="button"
                 onClick={google}
                 disabled={busy}
-                className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[10px] border border-border/80 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60 shadow-2xs"
+                className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[10px] border border-border/80 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60 shadow-2xs cursor-pointer"
               >
                 <GoogleIcon />
                 Continue with Google
               </button>
 
-              {/* Divider */}
               <div className="my-4 flex items-center gap-3">
                 <span className="h-px flex-1 bg-border/60" />
                 <span className="text-[10.5px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Or</span>
                 <span className="h-px flex-1 bg-border/60" />
               </div>
 
-              {/* Form Fields */}
               <form onSubmit={submit} className="space-y-3.5" noValidate>
                 {mode === "signup" && (
                   <div className="space-y-1">
@@ -259,7 +262,6 @@ export default function AuthPage() {
                   {errors.email && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.email}</p>}
                 </div>
 
-                {/* Password & Confirm Password Grid for Signup Mode (matching reference image grid!) */}
                 {mode === "signup" ? (
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -281,7 +283,7 @@ export default function AuthPage() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           aria-label={showPassword ? "Hide password" : "Show password"}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none cursor-pointer"
                         >
                           {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                         </button>
@@ -314,7 +316,7 @@ export default function AuthPage() {
                       <button
                         type="button"
                         onClick={() => toast.info("Password reset coming soon.")}
-                        className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors outline-none"
+                        className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors outline-none cursor-pointer"
                       >
                         Forgot password?
                       </button>
@@ -334,7 +336,7 @@ export default function AuthPage() {
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? "Hide password" : "Show password"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none cursor-pointer"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -343,7 +345,6 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {/* Terms Checkbox */}
                 {mode === "signup" && (
                   <div className="pt-1">
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -361,11 +362,10 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {/* Primary CTA Button */}
                 <button
                   type="submit"
                   disabled={busy}
-                  className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-foreground text-[13px] font-bold text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60 shadow-xs"
+                  className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-foreground text-[13px] font-bold text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60 shadow-xs cursor-pointer"
                 >
                   {busy ? (
                     <Loader2 size={17} className="animate-spin" />
@@ -377,7 +377,6 @@ export default function AuthPage() {
                 </button>
               </form>
 
-              {/* Bottom Account Switcher Link */}
               <p className="mt-5 text-center text-[12.5px] text-muted-foreground">
                 {mode === "signup" ? (
                   <>
@@ -385,7 +384,7 @@ export default function AuthPage() {
                     <button
                       type="button"
                       onClick={() => switchMode("signin")}
-                      className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                      className="font-semibold text-foreground hover:underline underline-offset-2 outline-none cursor-pointer"
                     >
                       Sign in
                     </button>
@@ -396,7 +395,7 @@ export default function AuthPage() {
                     <button
                       type="button"
                       onClick={() => switchMode("signup")}
-                      className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                      className="font-semibold text-foreground hover:underline underline-offset-2 outline-none cursor-pointer"
                     >
                       Create account
                     </button>
@@ -408,29 +407,24 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* ── MOBILE LAYOUT (<lg): Purpose-Built Compact Mobile Surface ── */}
+      {/* ── MOBILE LAYOUT (<lg) ── */}
       <div className="relative z-10 flex w-full flex-col items-center my-auto lg:hidden" style={{ maxWidth: "min(380px, 100%)" }}>
-        
-        {/* Mobile Authentication Surface Card */}
         <div
           className="w-full rounded-[24px] border border-border/50 bg-card px-4.5 py-4.5 sm:px-5 sm:py-5 shadow-[0_4px_24px_-4px_rgba(20,28,45,0.06)] transition-all duration-200"
           style={{ boxShadow: "0 6px 28px -8px rgba(20, 28, 45, 0.07), 0 2px 4px -1px rgba(20, 28, 45, 0.02)" }}
         >
-          {/* 1. DUELY WORDMARK */}
           <div className="mb-2 text-center">
             <span className="inline-block font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/80">
               DUELY
             </span>
           </div>
 
-          {/* 2. TOP ILLUSTRATION */}
           <div className="mb-2.5 flex justify-center">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary/70 text-foreground ring-3 ring-muted/40">
               <FileText size={20} className="text-foreground/80 stroke-[1.75]" />
             </div>
           </div>
 
-          {/* 3. HEADING & SUPPORTING TEXT */}
           <div className="mb-3 text-center">
             <h1 className="text-[18px] font-bold leading-tight tracking-[-0.025em] text-foreground">
               {mode === "signin" ? "Welcome back" : "Create your account"}
@@ -442,14 +436,13 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* 4. COMPACT SELECTOR TABS */}
           <div className="mb-3 flex h-[38px] rounded-[8px] bg-muted/70 p-0.5">
             {(["signin", "signup"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => switchMode(m)}
-                className={`flex-1 rounded-[6px] text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 ${
+                className={`flex-1 rounded-[6px] text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
                   mode === m
                     ? "bg-card text-foreground shadow-2xs"
                     : "text-muted-foreground hover:text-foreground/70"
@@ -460,7 +453,6 @@ export default function AuthPage() {
             ))}
           </div>
 
-          {/* 5. FORM FIELDS & PRIMARY CTA */}
           <form onSubmit={submit} className="space-y-2.5" noValidate>
             {mode === "signup" && (
               <div className="space-y-0.5">
@@ -515,7 +507,7 @@ export default function AuthPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
@@ -527,7 +519,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => toast.info("Password reset coming soon.")}
-                    className="text-[10.5px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none"
+                    className="text-[10.5px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -535,11 +527,10 @@ export default function AuthPage() {
               )}
             </div>
 
-            {/* Primary Action CTA */}
             <button
               type="submit"
               disabled={busy}
-              className="mt-1 flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] bg-foreground text-[11.5px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+              className="mt-1 flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] bg-foreground text-[11.5px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
             >
               {busy ? (
                 <Loader2 size={15} className="animate-spin" />
@@ -551,25 +542,22 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="my-2.5 flex items-center gap-2.5">
             <span className="h-px flex-1 bg-border/50" />
             <span className="text-[9.5px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">OR</span>
             <span className="h-px flex-1 bg-border/50" />
           </div>
 
-          {/* Google Social Auth */}
           <button
             type="button"
             onClick={google}
             disabled={busy}
-            className="flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] border border-border/70 bg-background text-[12px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+            className="flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] border border-border/70 bg-background text-[12px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
           >
             <GoogleIcon />
             Continue with Google
           </button>
 
-          {/* Bottom Account Switcher Link */}
           <p className="mt-3 text-center text-[11.5px] text-muted-foreground">
             {mode === "signup" ? (
               <>
@@ -577,7 +565,7 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => switchMode("signin")}
-                  className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                  className="font-semibold text-foreground hover:underline underline-offset-2 outline-none cursor-pointer"
                 >
                   Sign in
                 </button>
@@ -588,7 +576,7 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => switchMode("signup")}
-                  className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                  className="font-semibold text-foreground hover:underline underline-offset-2 outline-none cursor-pointer"
                 >
                   Create account
                 </button>
@@ -597,7 +585,6 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Footnote */}
         <p className="mt-3 text-center text-[9.5px] font-medium uppercase tracking-widest text-muted-foreground/40">
           © {new Date().getFullYear()} Duely
         </p>
@@ -605,8 +592,6 @@ export default function AuthPage() {
     </div>
   );
 }
-
-/* ── Helper Functions & SVG Components ───────────────────────────── */
 
 function ConcentricRings() {
   return (
@@ -623,7 +608,7 @@ function ConcentricRings() {
 
 function desktopInputClass(hasError: boolean) {
   return [
-    "h-[48px] w-full rounded-[9px] border px-3.5 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
+    "h-[48px] w-full rounded-[9px] border px-3.5 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background text-foreground",
     hasError
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
       : "border-border/70 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
@@ -632,7 +617,7 @@ function desktopInputClass(hasError: boolean) {
 
 function mobileInputClass(hasError: boolean) {
   return [
-    "h-[42px] w-full rounded-[8px] border px-3 font-sans text-[13px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
+    "h-[42px] w-full rounded-[8px] border px-3 font-sans text-[13px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background text-foreground",
     hasError
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
       : "border-border/65 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",

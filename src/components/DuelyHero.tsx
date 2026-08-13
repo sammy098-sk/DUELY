@@ -44,7 +44,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
         />
       </div>
 
-      {/* Public Landing Top Navbar (Theme Toggle + Logo) */}
+      {/* Public Landing Top Navbar (Theme Toggle + Logo + Sign In Button) */}
       {isLanding && (
         <header className="relative z-20 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
           <Link to="/" className="flex items-center gap-2">
@@ -68,12 +68,13 @@ export function DuelyHero({ context }: DuelyHeroProps) {
               )}
             </button>
 
+            {/* Sign In Header Link */}
             <Button
               asChild
               size="sm"
-              className="h-9 px-4 rounded-full font-bold text-xs bg-emerald-500 text-black hover:bg-emerald-400 transition-all shadow-xs"
+              className="h-9 px-4 rounded-full font-bold text-xs bg-emerald-500 text-black hover:bg-emerald-400 transition-all shadow-xs cursor-pointer"
             >
-              <Link to="/auth">Sign In</Link>
+              <Link to="/auth?mode=signin">Sign In</Link>
             </Button>
           </div>
         </header>
@@ -135,9 +136,9 @@ export function DuelyHero({ context }: DuelyHeroProps) {
               <Button
                 asChild
                 size="lg"
-                className="h-12 px-7 rounded-xl font-extrabold text-sm gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                className="h-12 px-7 rounded-xl font-extrabold text-sm gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
-                <Link to="/auth">
+                <Link to="/auth?mode=signup">
                   <span>Get started free</span>
                   <ArrowRight className="size-4 stroke-[2.5]" />
                 </Link>
@@ -149,7 +150,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
                 variant="outline"
                 size="lg"
                 onClick={() => setShowDemoModal(true)}
-                className="h-12 px-6 rounded-xl font-bold text-sm gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 transition-all"
+                className="h-12 px-6 rounded-xl font-bold text-sm gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 transition-all cursor-pointer"
               >
                 <Play className="size-4 fill-current text-emerald-400" />
                 <span>Watch demo</span>
@@ -161,7 +162,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
               <Button
                 asChild
                 size="lg"
-                className="h-12 px-7 rounded-xl font-extrabold text-sm gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                className="h-12 px-7 rounded-xl font-extrabold text-sm gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
                 <Link to="/invoices">
                   <span>Go to Dashboard</span>
@@ -174,7 +175,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-12 px-6 rounded-xl font-bold text-sm gap-2 border-border bg-card text-foreground hover:bg-muted transition-all"
+                className="h-12 px-6 rounded-xl font-bold text-sm gap-2 border-border bg-card text-foreground hover:bg-muted transition-all cursor-pointer"
               >
                 <Link to="/invoices/new">
                   <Sparkles className="size-4 text-primary" />
@@ -346,8 +347,8 @@ export function DuelyHero({ context }: DuelyHeroProps) {
               3. Send your invoice. Duely monitors due dates and chases payment over WhatsApp &amp; Email automatically!
             </p>
             <div className="pt-3 flex justify-end">
-              <Button asChild size="sm" className="bg-emerald-500 text-neutral-950 font-bold text-xs">
-                <Link to="/auth">Try Duely Free</Link>
+              <Button asChild size="sm" className="bg-emerald-500 text-neutral-950 font-bold text-xs cursor-pointer">
+                <Link to="/auth?mode=signup">Try Duely Free</Link>
               </Button>
             </div>
           </div>
