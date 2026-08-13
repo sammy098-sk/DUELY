@@ -1,17 +1,19 @@
 import { useEffect, useState, ChangeEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   User,
   Building2,
   Mail,
   LogOut,
-  Settings as SettingsIcon,
   Upload,
   FileSignature,
   Loader2,
   Save,
-  CheckCircle2,
+  CreditCard,
+  Phone,
+  Coins,
+  BellRing,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,14 +22,25 @@ import { uploadBrandingImage, type ExtendedProfile } from "@/lib/branding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<ExtendedProfile>({ id: "" });
-  const [businessName, setBusinessName] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [signatureUrl, setSignatureUrl] = useState("");
+
+  const [form, setForm] = useState({
+    business_name: "",
+    contact_email: "",
+    phone: "",
+    address: "",
+    bank_details: "",
+    default_currency: "NGN",
+    reminders_enabled: true,
+    company_logo_url: "",
+    signature_url: "",
+  });
+
   const [busy, setBusy] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSig, setUploadingSig] = useState(false);
@@ -42,10 +55,17 @@ export default function ProfilePage() {
       .then(({ data }) => {
         if (data) {
           const ext = data as unknown as ExtendedProfile;
-          setProfile(ext);
-          setBusinessName(ext.business_name || ext.company_name || "");
-          setLogoUrl(ext.company_logo_url || "");
-          setSignatureUrl(ext.signature_url || "");
+          setForm({
+            business_name: ext.business_name || ext.company_name || "",
+            contact_email: ext.contact_email || user.email || "",
+            phone: ext.phone || "",
+            address: ext.address || "",
+            bank_details: ext.bank_details || "",
+            default_currency: ext.default_currency || "NGN",
+            reminders_enabled: ext.reminders_enabled ?? true,
+            company_logo_url: ext.company_logo_url || "",
+            signature_url: ext.signature_url || "",
+          });
         }
       });
   }, [user]);
@@ -55,8 +75,8 @@ export default function ProfilePage() {
     setUploadingLogo(true);
     try {
       const url = await uploadBrandingImage(user.id, e.target.files[0], "logo");
-      setLogoUrl(url);
-      toast.success("Company logo uploaded successfully!");
+      setForm((prev) => ({ ...prev, company_logo_url: url }));
+      toast.success("Company logo uploaded.");
     } catch {
       toast.error("Failed to upload logo.");
     } finally {
@@ -69,8 +89,8 @@ export default function ProfilePage() {
     setUploadingSig(true);
     try {
       const url = await uploadBrandingImage(user.id, e.target.files[0], "signature");
-      setSignatureUrl(url);
-      toast.success("Signature uploaded successfully!");
+      setForm((prev) => ({ ...prev, signature_url: url }));
+      toast.success("Signature uploaded.");
     } catch {
       toast.error("Failed to upload signature.");
     } finally {
@@ -84,16 +104,22 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
-        business_name: businessName,
-        company_logo_url: logoUrl,
-        signature_url: signatureUrl,
+        business_name: form.business_name,
+        contact_email: form.contact_email,
+        phone: form.phone,
+        address: form.address,
+        bank_details: form.bank_details,
+        default_currency: form.default_currency,
+        reminders_enabled: form.reminders_enabled,
+        company_logo_url: form.company_logo_url,
+        signature_url: form.signature_url,
         updated_at: new Date().toISOString(),
       } as any);
 
       if (error) throw error;
-      toast.success("Profile & branding saved.");
+      toast.success("Profile & Business Settings saved successfully.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save profile.");
+      toast.error(err instanceof Error ? err.message : "Failed to save settings.");
     } finally {
       setBusy(false);
     }
@@ -107,36 +133,30 @@ export default function ProfilePage() {
 
   const fullName =
     (user?.user_metadata?.["full_name"] as string) ||
-    businessName ||
+    form.business_name ||
     user?.email?.split("@")[0] ||
     "User";
 
   return (
-    <AppShell pageTitle="Profile">
+    <AppShell pageTitle="Profile & Settings">
       <div className="flex-1 p-4 lg:p-8 bg-background">
-        <div className="mx-auto max-w-3xl space-y-6">
+        <div className="mx-auto max-w-4xl space-y-6">
           {/* Header Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-                Workspace Profile
+                Profile & Settings
               </h1>
               <p className="mt-1 text-xs text-muted-foreground">
-                Manage your personal details, company branding, and signature.
+                Manage your personal information, invoice branding, and payment configurations.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
-                <Link to="/settings">
-                  <SettingsIcon className="size-3.5" />
-                  Settings
-                </Link>
-              </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleLogout}
-                className="gap-1.5 text-xs font-semibold"
+                className="gap-1.5 text-xs font-bold"
               >
                 <LogOut className="size-3.5" />
                 Log out
@@ -144,7 +164,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Card 1: Personal Information */}
+          {/* Section 1: Personal Information */}
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-paper space-y-4">
             <div className="flex items-center gap-2 border-b border-border/60 pb-3">
               <User className="size-4 text-primary" />
@@ -168,7 +188,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Card 2: Business & Branding Information */}
+          {/* Section 2: Company & Invoice Branding */}
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-paper space-y-5">
             <div className="flex items-center gap-2 border-b border-border/60 pb-3">
               <Building2 className="size-4 text-primary" />
@@ -181,22 +201,22 @@ export default function ProfilePage() {
               <div className="space-y-1.5">
                 <Label className="label-caps">Company / Business Name</Label>
                 <Input
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
+                  value={form.business_name}
+                  onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                   placeholder="e.g. Duely Studio"
                   className="h-10 text-xs font-semibold"
                 />
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 pt-2">
-                {/* Company Logo Upload & Preview */}
+                {/* Company Logo */}
                 <div className="space-y-2">
                   <Label className="label-caps">Company Logo</Label>
                   <div className="rounded-xl border border-border bg-background p-4 flex flex-col items-center justify-center text-center space-y-3">
-                    {logoUrl ? (
-                      <div className="relative group">
+                    {form.company_logo_url ? (
+                      <div className="relative">
                         <img
-                          src={logoUrl}
+                          src={form.company_logo_url}
                           alt="Company Logo"
                           className="h-16 w-auto object-contain max-w-full rounded"
                         />
@@ -213,7 +233,7 @@ export default function ProfilePage() {
                       ) : (
                         <Upload className="size-3.5" />
                       )}
-                      <span>{logoUrl ? "Change Logo" : "Upload Logo"}</span>
+                      <span>{form.company_logo_url ? "Change Logo" : "Upload Logo"}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -224,14 +244,14 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Signature Upload & Preview */}
+                {/* Signature */}
                 <div className="space-y-2">
                   <Label className="label-caps">Authorized Signature</Label>
                   <div className="rounded-xl border border-border bg-background p-4 flex flex-col items-center justify-center text-center space-y-3">
-                    {signatureUrl ? (
-                      <div className="relative group">
+                    {form.signature_url ? (
+                      <div className="relative">
                         <img
-                          src={signatureUrl}
+                          src={form.signature_url}
                           alt="Signature Preview"
                           className="h-14 w-auto object-contain max-w-full rounded bg-card p-1 border border-border/50"
                         />
@@ -248,7 +268,7 @@ export default function ProfilePage() {
                       ) : (
                         <Upload className="size-3.5" />
                       )}
-                      <span>{signatureUrl ? "Change Signature" : "Upload Signature"}</span>
+                      <span>{form.signature_url ? "Change Signature" : "Upload Signature"}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -260,11 +280,98 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Section 3: Business & Invoice Settings */}
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-paper space-y-5">
+            <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+              <CreditCard className="size-4 text-primary" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                Business & Payment Settings
+              </h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="label-caps">Contact Email for Invoices</Label>
+                <Input
+                  type="email"
+                  value={form.contact_email}
+                  onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                  placeholder="billing@example.com"
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="label-caps">WhatsApp Sender Number</Label>
+                <div className="relative">
+                  <Input
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="+2348012345678"
+                    className="h-9 text-xs pl-8"
+                  />
+                  <Phone className="size-3.5 text-muted-foreground absolute left-2.5 top-3" />
+                </div>
+              </div>
+
+              <div className="sm:col-span-2 space-y-1.5">
+                <Label className="label-caps">Business Address</Label>
+                <Textarea
+                  rows={2}
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  placeholder="Street, City, Country"
+                  className="text-xs resize-none"
+                />
+              </div>
+
+              <div className="sm:col-span-2 space-y-1.5">
+                <Label className="label-caps">Bank & Payment Details</Label>
+                <Textarea
+                  rows={3}
+                  value={form.bank_details}
+                  onChange={(e) => setForm({ ...form, bank_details: e.target.value })}
+                  placeholder="Bank name, account name, account number, IBAN…"
+                  className="text-xs font-mono resize-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="label-caps">Default Currency</Label>
+                <div className="relative">
+                  <Input
+                    value={form.default_currency}
+                    onChange={(e) => setForm({ ...form, default_currency: e.target.value.toUpperCase() })}
+                    placeholder="NGN, USD, EUR, GBP"
+                    className="h-9 text-xs font-mono uppercase pl-8"
+                  />
+                  <Coins className="size-3.5 text-muted-foreground absolute left-2.5 top-3" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 sm:col-span-2 border-t border-border/60 pt-4 mt-2">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <BellRing className="size-4 text-primary" />
+                    <p className="label-caps font-bold">Automatic Invoice Chasing</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Duely automatically reminds unpaid clients every 3 days.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.reminders_enabled}
+                  onCheckedChange={(v) => setForm({ ...form, reminders_enabled: v })}
+                />
+              </div>
+            </div>
 
             <div className="pt-3 border-t border-border/60 flex justify-end">
               <Button onClick={saveProfile} disabled={busy} size="sm" className="gap-2 font-bold text-xs">
                 {busy ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                <span>Save Profile Changes</span>
+                <span>Save All Changes</span>
               </Button>
             </div>
           </div>

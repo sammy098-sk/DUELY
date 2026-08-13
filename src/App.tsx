@@ -14,7 +14,6 @@ import Dashboard from "./pages/Dashboard";
 import AuthPage from "./pages/Auth";
 import NewInvoice from "./pages/NewInvoice";
 import InvoiceDetail from "./pages/InvoiceDetail";
-import Settings from "./pages/Settings";
 import ProfilePage from "./pages/Profile";
 import ComingSoonPage from "./pages/ComingSoon";
 
@@ -25,7 +24,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <p className="font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Opening Duely…
         </p>
@@ -80,7 +79,7 @@ export function App() {
             } 
           />
 
-          {/* Missing Navigation Routes -> Clean Coming Soon Pages */}
+          {/* Sidebar Navigation Placeholder Routes */}
           <Route 
             path="/quibot" 
             element={
@@ -142,15 +141,7 @@ export function App() {
             } 
           />
 
-          {/* Settings & Profile Pages */}
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Unified Profile Page & Settings Redirect */}
           <Route 
             path="/profile" 
             element={
@@ -159,6 +150,7 @@ export function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/settings" element={<Navigate to="/profile" replace />} />
 
           <Route path="*" element={<Navigate to="/invoices/new" />} />
         </Routes>

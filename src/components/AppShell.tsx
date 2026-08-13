@@ -4,7 +4,6 @@ import {
   LogOut,
   Menu,
   FileText,
-  Settings as SettingsIcon,
   Sparkles,
   FileSpreadsheet,
   Receipt,
@@ -35,7 +34,7 @@ export const navItems = [
   { to: "/receipts", label: "Receipts", icon: Receipt },
   { to: "/revenue-forecast", label: "Revenue Forecast", icon: TrendingUp },
   { to: "/tutorial", label: "Tutorial", icon: GraduationCap },
-  { to: "/settings", label: "Settings", icon: SettingsIcon },
+  { to: "/profile", label: "Profile", icon: User },
 ];
 
 export function AppShell({ children, pageTitle = "Invoice Generator", headerActions }: AppShellProps) {
@@ -99,7 +98,7 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
         <div className="flex items-center gap-3">
           <span className="h-2 w-2 rounded-full bg-primary animate-ping" />
           <p className="font-sans text-sm font-semibold tracking-wider uppercase text-muted-foreground">
@@ -129,9 +128,9 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col antialiased">
-      {/* ── TOP NAVIGATION BAR ─────────────────────────────────────── */}
-      <header className="no-print sticky top-0 z-40 h-14 border-b border-border/80 bg-card/90 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between shadow-2xs">
+    <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col antialiased">
+      {/* ── TOP NAVIGATION BAR (Fixed h-14) ─────────────────────────── */}
+      <header className="no-print h-14 shrink-0 border-b border-border/80 bg-card/90 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between shadow-2xs z-40">
         {/* Left Side: DUELY Wordmark + Secondary Page Title */}
         <div className="flex items-center gap-3">
           {/* Mobile Sheet Trigger */}
@@ -143,14 +142,14 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
               <Menu className="size-5" />
             </SheetTrigger>
 
-            <SheetContent side="left" className="flex w-[16.5rem] flex-col p-0 border-r border-border">
+            <SheetContent side="left" className="flex w-[16.5rem] flex-col p-0 border-r border-border h-full">
               <SidebarContent
                 name={name}
-                userEmail={user.email}
                 pathname={pathname}
                 collapsed={false}
                 isNavItemActive={isNavItemActive}
                 onSignOut={handleSignOut}
+                logoUrl={profile?.company_logo_url}
               />
             </SheetContent>
           </Sheet>
@@ -187,18 +186,17 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
         </div>
       </header>
 
-      {/* ── WORKSPACE BODY LAYOUT (Sidebar + Main Area) ─────────────── */}
-      <div className="flex flex-1 min-h-0">
-        {/* DESKTOP SIDEBAR (Visible on lg+) */}
+      {/* ── WORKSPACE BODY LAYOUT (Fixed Sidebar + Main Independent Scroll Area) ─ */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* DESKTOP FIXED SIDEBAR (Visible on lg+) */}
         <aside
           className={cn(
-            "hidden lg:flex shrink-0 border-r border-border/80 bg-card flex-col justify-between select-none transition-all duration-200",
+            "hidden lg:flex h-full shrink-0 border-r border-border/80 bg-card flex-col select-none transition-all duration-200 overflow-hidden",
             collapsed ? "w-16" : "w-60"
           )}
         >
           <SidebarContent
             name={name}
-            userEmail={user.email}
             pathname={pathname}
             collapsed={collapsed}
             onToggleCollapse={toggleCollapsed}
@@ -208,8 +206,8 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
           />
         </aside>
 
-        {/* MAIN WORKSPACE CONTENT AREA */}
-        <main className="flex-1 min-w-0 flex flex-col">{children}</main>
+        {/* MAIN WORKSPACE CONTENT CONTAINER (INDEPENDENT SCROLLABLE MAIN) */}
+        <main className="flex-1 min-w-0 h-full overflow-y-auto flex flex-col">{children}</main>
       </div>
     </div>
   );
@@ -218,8 +216,6 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
 /* ── REUSABLE SIDEBAR CONTENT (Fixed Top, Scrollable Middle, Fixed Bottom) ─ */
 function SidebarContent({
   name,
-  userEmail,
-  pathname,
   collapsed,
   onToggleCollapse,
   isNavItemActive,
@@ -227,7 +223,6 @@ function SidebarContent({
   logoUrl,
 }: {
   name: string;
-  userEmail?: string;
   pathname: string;
   collapsed: boolean;
   onToggleCollapse?: () => void;
@@ -239,51 +234,75 @@ function SidebarContent({
 
   return (
     <div className="flex h-full w-full flex-col justify-between overflow-hidden">
-      {/* 1. FIXED TOP: Workspace / Logo Header */}
-      <div className="shrink-0 border-b border-border/60 p-3.5 flex items-center justify-between gap-2">
-        <Link
-          to="/profile"
-          title={collapsed ? name : undefined}
-          className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-85 transition-opacity"
-        >
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt="Logo"
-              className="size-8 rounded-lg object-contain bg-background border border-border shrink-0"
-            />
-          ) : (
-            <div className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background font-extrabold text-xs shrink-0 shadow-2xs">
-              {initial}
-            </div>
-          )}
+      {/* 1. FIXED TOP: Workspace / Logo Header (Never Scrolls) */}
+      <div className="shrink-0 border-b border-border/60 p-3.5">
+        {collapsed ? (
+          /* Collapsed Layout: Collapse button on top row, Workspace avatar below it */
+          <div className="flex flex-col items-center gap-3">
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                title="Expand Sidebar"
+                className="size-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+              >
+                <PanelLeftOpen className="size-4" />
+              </button>
+            )}
 
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Workspace
-              </p>
-              <p className="truncate text-xs font-extrabold text-foreground leading-snug">
-                {name || "Duely Studio"}
-              </p>
+            <div
+              title={name}
+              className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background font-extrabold text-xs shrink-0 shadow-2xs overflow-hidden"
+            >
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="size-full object-contain bg-background" />
+              ) : (
+                initial
+              )}
             </div>
-          )}
-        </Link>
+          </div>
+        ) : (
+          /* Expanded Layout: Single horizontal row: [Avatar] Workspace Name on left, [←] on right */
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="size-8 rounded-lg object-contain bg-background border border-border shrink-0"
+                />
+              ) : (
+                <div className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background font-extrabold text-xs shrink-0 shadow-2xs">
+                  {initial}
+                </div>
+              )}
 
-        {onToggleCollapse && (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-            className="size-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
-          >
-            {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-          </button>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Workspace
+                </p>
+                <p className="truncate text-xs font-extrabold text-foreground leading-snug">
+                  {name || "Duely Studio"}
+                </p>
+              </div>
+            </div>
+
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                title="Collapse Sidebar"
+                className="size-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+              >
+                <PanelLeftClose className="size-4" />
+              </button>
+            )}
+          </div>
         )}
       </div>
 
-      {/* 2. SCROLLABLE MIDDLE NAVIGATION (flex-1 overflow-y-auto) */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      {/* 2. SCROLLABLE MIDDLE NAVIGATION (flex-1 overflow-y-auto min-h-0) */}
+      <nav className="flex-1 overflow-y-auto min-h-0 p-3 space-y-1">
         {navItems.map((item) => {
           const active = isNavItemActive(item.to, item.matchPrefix);
 
@@ -307,28 +326,8 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* 3. FIXED BOTTOM: Profile & Log out */}
-      <div className="shrink-0 border-t border-border/60 p-3 space-y-1.5">
-        <Link
-          to="/profile"
-          title={collapsed ? `Profile (${name})` : undefined}
-          className={cn(
-            "flex items-center gap-3 rounded-lg py-2 transition-colors hover:bg-muted/70",
-            collapsed ? "justify-center px-0" : "px-2.5",
-            pathname === "/profile" ? "bg-muted text-foreground font-bold" : "text-muted-foreground"
-          )}
-        >
-          <div className="flex size-7 items-center justify-center rounded-full bg-muted text-foreground border border-border shrink-0">
-            <User className="size-3.5 text-muted-foreground" />
-          </div>
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-foreground">{name || "Profile"}</p>
-              <p className="truncate text-[10px] text-muted-foreground">{userEmail}</p>
-            </div>
-          )}
-        </Link>
-
+      {/* 3. FIXED BOTTOM: Log out (Never Scrolls) */}
+      <div className="shrink-0 border-t border-border/60 p-3">
         <button
           type="button"
           onClick={onSignOut}
