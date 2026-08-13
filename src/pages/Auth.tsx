@@ -13,7 +13,6 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -26,17 +25,16 @@ export default function AuthPage() {
   function switchMode(m: "signin" | "signup") {
     setMode(m);
     setErrors({});
+    setEmail("");
+    setPassword("");
+    setFullName("");
   }
 
   function validate() {
     const newErrors: { [key: string]: string } = {};
-    if (!email || !email.includes("@")) newErrors.email = "Please enter a valid email address.";
+    if (!email || !email.includes("@")) newErrors.email = "Enter a valid email address.";
     if (!password || password.length < 6) newErrors.password = "Password must be at least 6 characters.";
-    if (mode === "signup") {
-      if (!fullName.trim()) newErrors.fullName = "Please enter your full name.";
-      if (password && confirmPassword && password !== confirmPassword)
-        newErrors.confirmPassword = "Passwords do not match.";
-    }
+    if (mode === "signup" && !fullName.trim()) newErrors.fullName = "Please enter your full name.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -44,7 +42,6 @@ export default function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-
     setBusy(true);
     setErrors({});
     try {
@@ -75,14 +72,14 @@ export default function AuthPage() {
       provider: "google",
       options: { redirectTo: window.location.origin },
     });
-    if (error) {
-      toast.error("Google sign-in failed. Try email instead.");
-    }
+    if (error) toast.error("Google sign-in failed. Try email instead.");
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-5 py-14">
-      {/* Faint ledger grid — entire viewport background */}
+    /* ── Full-page background ───────────────────────────── */
+    <div className="relative min-h-screen bg-background flex flex-col items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+
+      {/* Faint ledger grid — full viewport */}
       <svg
         className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.025]"
         xmlns="http://www.w3.org/2000/svg"
@@ -96,18 +93,19 @@ export default function AuthPage() {
         <rect width="100%" height="100%" fill="url(#ledger-grid)" />
       </svg>
 
-      {/* Subtle horizontal rule accent — top of page */}
-      <div className="pointer-events-none absolute left-0 right-0 top-0 h-[3px] bg-foreground/5" />
+      {/* Subtle top rule */}
+      <div className="pointer-events-none absolute left-0 right-0 top-0 h-[2px] bg-foreground/5" />
 
-      <div className="relative z-10 w-full max-w-[420px]">
-        {/* ─── Brand ─── */}
+      {/* ── Desktop layout (lg+): flat/cardless centered form ── */}
+      <div className="relative z-10 hidden w-full max-w-[420px] lg:flex lg:flex-col">
+        {/* Brand */}
         <div className="mb-10 text-center">
           <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
             Duely
           </span>
         </div>
 
-        {/* ─── Auth heading ─── */}
+        {/* Heading */}
         <div className="mb-8 text-center">
           <h1 className="text-[26px] font-bold leading-snug tracking-[-0.03em] text-foreground">
             {mode === "signin" ? "Welcome back." : "Create your account"}
@@ -119,171 +117,185 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* ─── Tab switcher ─── */}
-        <div className="mb-8 flex items-end justify-center gap-8 border-b border-border/50 pb-0">
-          {(["signin", "signup"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => switchMode(m)}
-              className={`pb-3 text-[11.5px] font-bold uppercase tracking-widest transition-colors duration-150 relative ${
-                mode === m
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground/70"
-              }`}
-            >
-              {m === "signin" ? "Sign In" : "Create Account"}
-              {mode === m && (
-                <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] rounded-full bg-foreground" />
-              )}
-            </button>
-          ))}
+        {/* Tabs */}
+        <DesktopTabs mode={mode} onSwitch={switchMode} />
+
+        {/* Form */}
+        <AuthForm
+          mode={mode}
+          email={email} setEmail={setEmail}
+          password={password} setPassword={setPassword}
+          fullName={fullName} setFullName={setFullName}
+          showPassword={showPassword} setShowPassword={setShowPassword}
+          busy={busy} errors={errors}
+          onSubmit={submit}
+          onGoogle={google}
+          onSwitchMode={switchMode}
+        />
+      </div>
+
+      {/* ── Mobile layout (<lg): rounded card surface ── */}
+      <div className="relative z-10 flex w-full flex-col lg:hidden" style={{ maxWidth: "min(420px, 100%)" }}>
+
+        {/* Wordmark above the card */}
+        <div className="mb-5 text-center">
+          <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+            Duely
+          </span>
         </div>
 
-        {/* ─── Form ─── */}
-        <form onSubmit={submit} className="space-y-4" noValidate>
-          {mode === "signup" && (
-            <Field
-              id="fullName"
-              label="Full Name"
-              type="text"
-              value={fullName}
-              onChange={setFullName}
-              placeholder="Jane Doe"
-              error={errors.fullName}
-            />
-          )}
-
-          <Field
-            id="email"
-            label="Email Address"
-            type="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="you@example.com"
-            autoComplete="email"
-            error={errors.email}
-          />
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="password"
-                className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground"
-              >
-                Password
-              </label>
-              {mode === "signin" && (
-                <button
-                  type="button"
-                  onClick={() => toast.info("Password reset coming soon.")}
-                  className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:underline outline-none"
-                >
-                  Forgot password?
-                </button>
-              )}
-            </div>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                className={inputClass(!!errors.password)}
-                style={{ paddingRight: "3rem" }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {errors.password && <FieldError>{errors.password}</FieldError>}
+        {/* ── The mobile surface card ── */}
+        <div
+          className="w-full rounded-[28px] border border-border/50 bg-card px-6 py-8 shadow-[0_4px_32px_-8px_rgba(0,0,0,0.07)]"
+          style={{ boxShadow: "0 4px 40px -12px rgba(30,40,60,0.10), 0 1px 4px -1px rgba(30,40,60,0.04)" }}
+        >
+          {/* ── Mobile heading ── */}
+          <div className="mb-7 text-center">
+            <h1 className="text-[22px] font-bold leading-tight tracking-[-0.03em] text-foreground">
+              {mode === "signin" ? "Welcome back" : "Create your account"}
+            </h1>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              {mode === "signin"
+                ? "Sign in to keep your invoices moving."
+                : "Start chasing invoices automatically."}
+            </p>
           </div>
 
-          {mode === "signup" && (
-            <Field
-              id="confirmPassword"
-              label="Confirm Password"
-              type={showPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              placeholder="Confirm your password"
-              autoComplete="new-password"
-              error={errors.confirmPassword}
-            />
-          )}
+          {/* ── Mobile tab switcher ── */}
+          <div className="mb-6 flex rounded-[10px] bg-muted p-1">
+            {(["signin", "signup"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => switchMode(m)}
+                className={`flex-1 rounded-[8px] py-2 text-[11.5px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                  mode === m
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+              >
+                {m === "signin" ? "Sign In" : "Create Account"}
+              </button>
+            ))}
+          </div>
 
-          {/* ─── Primary CTA ─── */}
-          <button
-            type="submit"
-            disabled={busy}
-            className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-foreground text-[13px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60"
-          >
-            {busy ? (
-              <Loader2 size={17} className="animate-spin" />
-            ) : mode === "signin" ? (
-              "Sign In"
-            ) : (
-              "Create Account"
+          {/* ── Mobile form ── */}
+          <form onSubmit={submit} className="space-y-4" noValidate>
+            {mode === "signup" && (
+              <MobileField
+                id="fullName"
+                label="Full Name"
+                type="text"
+                value={fullName}
+                onChange={setFullName}
+                placeholder="Your name"
+                autoComplete="name"
+                error={errors.fullName}
+              />
             )}
-          </button>
-        </form>
 
-        {/* ─── Divider ─── */}
-        <div className="my-7 flex items-center gap-4">
-          <span className="h-px flex-1 bg-border/60" />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-            or
-          </span>
-          <span className="h-px flex-1 bg-border/60" />
+            <MobileField
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+              autoComplete="email"
+              error={errors.email}
+            />
+
+            {/* Password field with visibility toggle */}
+            <div className="space-y-1.5">
+              <label htmlFor="mob-password" className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="mob-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === "signup" ? "Create a password" : "Enter your password"}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  className={mobileInputClass(!!errors.password)}
+                  style={{ paddingRight: "3rem" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-[11px] font-medium text-destructive">{errors.password}</p>}
+              {mode === "signin" && (
+                <div className="pt-0.5 text-right">
+                  <button
+                    type="button"
+                    onClick={() => toast.info("Password reset coming soon.")}
+                    className="text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Primary CTA */}
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 rounded-[12px] bg-foreground text-[13px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+            >
+              {busy
+                ? <Loader2 size={17} className="animate-spin" />
+                : mode === "signin" ? "Sign In" : "Create Account"}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border/60" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">or</span>
+            <span className="h-px flex-1 bg-border/60" />
+          </div>
+
+          {/* Google */}
+          <button
+            type="button"
+            onClick={google}
+            disabled={busy}
+            className="flex h-[50px] w-full items-center justify-center gap-2.5 rounded-[12px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+          >
+            <GoogleIcon />
+            Continue with Google
+          </button>
+
+          {/* Account switcher link */}
+          <p className="mt-6 text-center text-[12.5px] text-muted-foreground">
+            {mode === "signup" ? (
+              <>
+                Already have an account?{" "}
+                <button type="button" onClick={() => switchMode("signin")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">
+                  Sign in
+                </button>
+              </>
+            ) : (
+              <>
+                Don't have an account?{" "}
+                <button type="button" onClick={() => switchMode("signup")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">
+                  Create account
+                </button>
+              </>
+            )}
+          </p>
         </div>
 
-        {/* ─── Google ─── */}
-        <button
-          type="button"
-          onClick={google}
-          disabled={busy}
-          className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[9px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60"
-        >
-          <GoogleIcon />
-          Continue with Google
-        </button>
-
-        {/* ─── Mode switch link ─── */}
-        <p className="mt-8 text-center text-[12.5px] text-muted-foreground">
-          {mode === "signup" ? (
-            <>
-              Already have an account?{" "}
-              <button
-                type="button"
-                onClick={() => switchMode("signin")}
-                className="font-semibold text-foreground hover:underline underline-offset-2 transition-all outline-none focus-visible:underline"
-              >
-                Sign in
-              </button>
-            </>
-          ) : (
-            <>
-              Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={() => switchMode("signup")}
-                className="font-semibold text-foreground hover:underline underline-offset-2 transition-all outline-none focus-visible:underline"
-              >
-                Create one
-              </button>
-            </>
-          )}
-        </p>
-
-        {/* ─── Footer ─── */}
-        <p className="mt-12 text-center text-[10.5px] font-medium uppercase tracking-widest text-muted-foreground opacity-50">
+        {/* Footer */}
+        <p className="mt-6 text-center text-[10px] font-medium uppercase tracking-widest text-muted-foreground opacity-40">
           © {new Date().getFullYear()} Duely
         </p>
       </div>
@@ -291,9 +303,119 @@ export default function AuthPage() {
   );
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+/* ── Desktop shared sub-components ──────────────────────────── */
 
-function inputClass(hasError: boolean) {
+function DesktopTabs({ mode, onSwitch }: { mode: "signin" | "signup"; onSwitch: (m: "signin" | "signup") => void }) {
+  return (
+    <div className="mb-8 flex items-end justify-center gap-8 border-b border-border/50">
+      {(["signin", "signup"] as const).map((m) => (
+        <button
+          key={m}
+          type="button"
+          onClick={() => onSwitch(m)}
+          className={`relative pb-3 text-[11.5px] font-bold uppercase tracking-widest transition-colors duration-150 ${
+            mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
+          }`}
+        >
+          {m === "signin" ? "Sign In" : "Create Account"}
+          {mode === m && (
+            <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] rounded-full bg-foreground" />
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface AuthFormProps {
+  mode: "signin" | "signup";
+  email: string; setEmail: (v: string) => void;
+  password: string; setPassword: (v: string) => void;
+  fullName: string; setFullName: (v: string) => void;
+  showPassword: boolean; setShowPassword: (v: boolean) => void;
+  busy: boolean;
+  errors: { [key: string]: string };
+  onSubmit: (e: React.FormEvent) => void;
+  onGoogle: () => void;
+  onSwitchMode: (m: "signin" | "signup") => void;
+}
+
+function AuthForm({ mode, email, setEmail, password, setPassword, fullName, setFullName, showPassword, setShowPassword, busy, errors, onSubmit, onGoogle, onSwitchMode }: AuthFormProps) {
+  return (
+    <>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        {mode === "signup" && (
+          <Field id="fullName" label="Full Name" type="text" value={fullName} onChange={setFullName}
+            placeholder="Jane Doe" autoComplete="name" error={errors.fullName} />
+        )}
+        <Field id="email" label="Email Address" type="email" value={email} onChange={setEmail}
+          placeholder="you@example.com" autoComplete="email" error={errors.email} />
+
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="desk-password" className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Password</label>
+            {mode === "signin" && (
+              <button type="button" onClick={() => toast.info("Password reset coming soon.")}
+                className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors outline-none">
+                Forgot password?
+              </button>
+            )}
+          </div>
+          <div className="relative">
+            <input
+              id="desk-password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              className={desktopInputClass(!!errors.password)}
+              style={{ paddingRight: "3rem" }}
+            />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none">
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          {errors.password && <p className="text-[11px] font-medium text-destructive">{errors.password}</p>}
+        </div>
+
+        <button type="submit" disabled={busy}
+          className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-foreground text-[13px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60">
+          {busy ? <Loader2 size={17} className="animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
+        </button>
+      </form>
+
+      <div className="my-7 flex items-center gap-4">
+        <span className="h-px flex-1 bg-border/60" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">or</span>
+        <span className="h-px flex-1 bg-border/60" />
+      </div>
+
+      <button type="button" onClick={onGoogle} disabled={busy}
+        className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[9px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60">
+        <GoogleIcon />
+        Continue with Google
+      </button>
+
+      <p className="mt-8 text-center text-[12.5px] text-muted-foreground">
+        {mode === "signup" ? (
+          <>Already have an account?{" "}<button type="button" onClick={() => onSwitchMode("signin")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">Sign in</button></>
+        ) : (
+          <>Don't have an account?{" "}<button type="button" onClick={() => onSwitchMode("signup")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">Create one</button></>
+        )}
+      </p>
+
+      <p className="mt-12 text-center text-[10.5px] font-medium uppercase tracking-widest text-muted-foreground opacity-50">
+        © {new Date().getFullYear()} Duely
+      </p>
+    </>
+  );
+}
+
+/* ── Shared helpers ──────────────────────────────────────────── */
+
+function desktopInputClass(hasError: boolean) {
   return [
     "h-[50px] w-full rounded-[9px] border px-4 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/50 bg-background",
     hasError
@@ -302,43 +424,40 @@ function inputClass(hasError: boolean) {
   ].join(" ");
 }
 
+function mobileInputClass(hasError: boolean) {
+  return [
+    "h-[50px] w-full rounded-[10px] border px-4 font-sans text-[14px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
+    hasError
+      ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
+      : "border-border/60 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
+  ].join(" ");
+}
+
 interface FieldProps {
-  id: string;
-  label: string;
-  type: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  autoComplete?: string;
-  error?: string;
+  id: string; label: string; type: string; value: string;
+  onChange: (v: string) => void; placeholder?: string;
+  autoComplete?: string; error?: string;
 }
 
 function Field({ id, label, type, value, onChange, placeholder, autoComplete, error }: FieldProps) {
   return (
     <div className="space-y-1.5">
-      <label
-        htmlFor={id}
-        className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className={inputClass(!!error)}
-      />
-      {error && <FieldError>{error}</FieldError>}
+      <label htmlFor={id} className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</label>
+      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder} autoComplete={autoComplete} className={desktopInputClass(!!error)} />
+      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
     </div>
   );
 }
 
-function FieldError({ children }: { children: React.ReactNode }) {
+function MobileField({ id, label, type, value, onChange, placeholder, autoComplete, error }: FieldProps) {
   return (
-    <p className="text-[11px] font-medium text-destructive">{children}</p>
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</label>
+      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder} autoComplete={autoComplete} className={mobileInputClass(!!error)} />
+      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
+    </div>
   );
 }
 
