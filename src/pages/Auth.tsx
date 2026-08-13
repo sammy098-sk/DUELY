@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, FileText } from "lucide-react";
 
 export default function AuthPage() {
   const { user, loading } = useAuth();
@@ -76,12 +76,11 @@ export default function AuthPage() {
   }
 
   return (
-    /* ── Full-page background ───────────────────────────── */
-    <div className="relative min-h-screen bg-background flex flex-col items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-background flex flex-col items-center justify-center overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
 
-      {/* Faint ledger grid — full viewport */}
+      {/* Almost invisible background grid */}
       <svg
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.025]"
+        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
@@ -93,19 +92,17 @@ export default function AuthPage() {
         <rect width="100%" height="100%" fill="url(#ledger-grid)" />
       </svg>
 
-      {/* Subtle top rule */}
+      {/* Subtle top bar accent */}
       <div className="pointer-events-none absolute left-0 right-0 top-0 h-[2px] bg-foreground/5" />
 
-      {/* ── Desktop layout (lg+): flat/cardless centered form ── */}
+      {/* ── DESKTOP LAYOUT (lg+): Cardless centered SaaS form ── */}
       <div className="relative z-10 hidden w-full max-w-[420px] lg:flex lg:flex-col">
-        {/* Brand */}
         <div className="mb-10 text-center">
           <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
             Duely
           </span>
         </div>
 
-        {/* Heading */}
         <div className="mb-8 text-center">
           <h1 className="text-[26px] font-bold leading-snug tracking-[-0.03em] text-foreground">
             {mode === "signin" ? "Welcome back." : "Create your account"}
@@ -117,10 +114,8 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Tabs */}
         <DesktopTabs mode={mode} onSwitch={switchMode} />
 
-        {/* Form */}
         <AuthForm
           mode={mode}
           email={email} setEmail={setEmail}
@@ -134,43 +129,53 @@ export default function AuthPage() {
         />
       </div>
 
-      {/* ── Mobile layout (<lg): rounded card surface ── */}
-      <div className="relative z-10 flex w-full flex-col lg:hidden" style={{ maxWidth: "min(420px, 100%)" }}>
+      {/* ── MOBILE LAYOUT (<lg): Finora-inspired composition for Duely ── */}
+      <div className="relative z-10 flex w-full flex-col items-center my-auto lg:hidden" style={{ maxWidth: "min(390px, 100%)" }}>
 
-        {/* Wordmark above the card */}
-        <div className="mb-5 text-center">
-          <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
-            Duely
-          </span>
-        </div>
-
-        {/* ── The mobile surface card ── */}
+        {/* ── Main Mobile Auth Panel ── */}
         <div
-          className="w-full rounded-[28px] border border-border/50 bg-card px-6 py-8 shadow-[0_4px_32px_-8px_rgba(0,0,0,0.07)]"
-          style={{ boxShadow: "0 4px 40px -12px rgba(30,40,60,0.10), 0 1px 4px -1px rgba(30,40,60,0.04)" }}
+          className="w-full rounded-[28px] border border-border/60 bg-card px-6 py-7 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] transition-all duration-200"
+          style={{ boxShadow: "0 10px 36px -12px rgba(24, 32, 48, 0.08), 0 2px 6px -1px rgba(24, 32, 48, 0.03)" }}
         >
-          {/* ── Mobile heading ── */}
-          <div className="mb-7 text-center">
-            <h1 className="text-[22px] font-bold leading-tight tracking-[-0.03em] text-foreground">
+          {/* Top Brand Tag */}
+          <div className="mb-4 text-center">
+            <span className="inline-block font-sans text-[10.5px] font-bold uppercase tracking-[0.28em] text-muted-foreground/70">
+              Duely
+            </span>
+          </div>
+
+          {/* 1. Compact Top Visual Icon Badge (matches reference hierarchy) */}
+          <div className="mb-5 flex justify-center">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-secondary/80 text-foreground ring-4 ring-muted/50">
+              <FileText size={26} className="text-foreground/80 stroke-[1.75]" />
+              <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background shadow-xs">
+                +
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Main Heading & Supporting Text */}
+          <div className="mb-5 text-center">
+            <h1 className="text-[21px] font-bold leading-tight tracking-[-0.03em] text-foreground">
               {mode === "signin" ? "Welcome back" : "Create your account"}
             </h1>
-            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+            <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground px-2">
               {mode === "signin"
                 ? "Sign in to keep your invoices moving."
                 : "Start chasing invoices automatically."}
             </p>
           </div>
 
-          {/* ── Mobile tab switcher ── */}
-          <div className="mb-6 flex rounded-[10px] bg-muted p-1">
+          {/* 3. Compact Segmented Selector (Matches Reference Selector) */}
+          <div className="mb-5 flex rounded-[10px] bg-muted/80 p-1">
             {(["signin", "signup"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => switchMode(m)}
-                className={`flex-1 rounded-[8px] py-2 text-[11.5px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                className={`flex-1 rounded-[7px] py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-150 ${
                   mode === m
-                    ? "bg-card text-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground/70"
                 }`}
               >
@@ -179,35 +184,44 @@ export default function AuthPage() {
             ))}
           </div>
 
-          {/* ── Mobile form ── */}
-          <form onSubmit={submit} className="space-y-4" noValidate>
+          {/* 4. Form Fields & Primary CTA */}
+          <form onSubmit={submit} className="space-y-3.5" noValidate>
             {mode === "signup" && (
-              <MobileField
-                id="fullName"
-                label="Full Name"
-                type="text"
-                value={fullName}
-                onChange={setFullName}
-                placeholder="Your name"
-                autoComplete="name"
-                error={errors.fullName}
-              />
+              <div className="space-y-1">
+                <label htmlFor="mob-fullName" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  Full Name
+                </label>
+                <input
+                  id="mob-fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Your name"
+                  autoComplete="name"
+                  className={mobileInputClass(!!errors.fullName)}
+                />
+                {errors.fullName && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.fullName}</p>}
+              </div>
             )}
 
-            <MobileField
-              id="email"
-              label="Email"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="you@example.com"
-              autoComplete="email"
-              error={errors.email}
-            />
+            <div className="space-y-1">
+              <label htmlFor="mob-email" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Email
+              </label>
+              <input
+                id="mob-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className={mobileInputClass(!!errors.email)}
+              />
+              {errors.email && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.email}</p>}
+            </div>
 
-            {/* Password field with visibility toggle */}
-            <div className="space-y-1.5">
-              <label htmlFor="mob-password" className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+            <div className="space-y-1">
+              <label htmlFor="mob-password" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                 Password
               </label>
               <div className="relative">
@@ -219,7 +233,7 @@ export default function AuthPage() {
                   placeholder={mode === "signup" ? "Create a password" : "Enter your password"}
                   autoComplete={mode === "signin" ? "current-password" : "new-password"}
                   className={mobileInputClass(!!errors.password)}
-                  style={{ paddingRight: "3rem" }}
+                  style={{ paddingRight: "2.75rem" }}
                 />
                 <button
                   type="button"
@@ -227,16 +241,17 @@ export default function AuthPage() {
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-              {errors.password && <p className="text-[11px] font-medium text-destructive">{errors.password}</p>}
+              {errors.password && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.password}</p>}
+              
               {mode === "signin" && (
                 <div className="pt-0.5 text-right">
                   <button
                     type="button"
                     onClick={() => toast.info("Password reset coming soon.")}
-                    className="text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none"
+                    className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none"
                   >
                     Forgot password?
                   </button>
@@ -244,49 +259,61 @@ export default function AuthPage() {
               )}
             </div>
 
-            {/* Primary CTA */}
+            {/* Primary Action CTA */}
             <button
               type="submit"
               disabled={busy}
-              className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 rounded-[12px] bg-foreground text-[13px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+              className="mt-2 flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] bg-foreground text-[12.5px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
             >
-              {busy
-                ? <Loader2 size={17} className="animate-spin" />
-                : mode === "signin" ? "Sign In" : "Create Account"}
+              {busy ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : mode === "signin" ? (
+                "SIGN IN"
+              ) : (
+                "CREATE ACCOUNT"
+              )}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-border/60" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">or</span>
-            <span className="h-px flex-1 bg-border/60" />
+          {/* 5. Divider */}
+          <div className="my-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border/50" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/80">or</span>
+            <span className="h-px flex-1 bg-border/50" />
           </div>
 
-          {/* Google */}
+          {/* 6. Google Social Authentication */}
           <button
             type="button"
             onClick={google}
             disabled={busy}
-            className="flex h-[50px] w-full items-center justify-center gap-2.5 rounded-[12px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+            className="flex h-[46px] w-full items-center justify-center gap-2.5 rounded-[10px] border border-border/70 bg-background text-[12.5px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
           >
             <GoogleIcon />
             Continue with Google
           </button>
 
-          {/* Account switcher link */}
-          <p className="mt-6 text-center text-[12.5px] text-muted-foreground">
+          {/* 7. Bottom Account Switcher Link */}
+          <p className="mt-5 text-center text-[12px] text-muted-foreground">
             {mode === "signup" ? (
               <>
                 Already have an account?{" "}
-                <button type="button" onClick={() => switchMode("signin")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">
+                <button
+                  type="button"
+                  onClick={() => switchMode("signin")}
+                  className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                >
                   Sign in
                 </button>
               </>
             ) : (
               <>
                 Don't have an account?{" "}
-                <button type="button" onClick={() => switchMode("signup")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">
+                <button
+                  type="button"
+                  onClick={() => switchMode("signup")}
+                  className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                >
                   Create account
                 </button>
               </>
@@ -294,8 +321,8 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-[10px] font-medium uppercase tracking-widest text-muted-foreground opacity-40">
+        {/* Small Footer */}
+        <p className="mt-4 text-center text-[10px] font-medium uppercase tracking-widest text-muted-foreground/40">
           © {new Date().getFullYear()} Duely
         </p>
       </div>
@@ -303,7 +330,7 @@ export default function AuthPage() {
   );
 }
 
-/* ── Desktop shared sub-components ──────────────────────────── */
+/* ── Desktop Shared Sub-Components ──────────────────────────── */
 
 function DesktopTabs({ mode, onSwitch }: { mode: "signin" | "signup"; onSwitch: (m: "signin" | "signup") => void }) {
   return (
@@ -413,7 +440,7 @@ function AuthForm({ mode, email, setEmail, password, setPassword, fullName, setF
   );
 }
 
-/* ── Shared helpers ──────────────────────────────────────────── */
+/* ── Helper Functions & Components ───────────────────────────── */
 
 function desktopInputClass(hasError: boolean) {
   return [
@@ -426,10 +453,10 @@ function desktopInputClass(hasError: boolean) {
 
 function mobileInputClass(hasError: boolean) {
   return [
-    "h-[50px] w-full rounded-[10px] border px-4 font-sans text-[14px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
+    "h-[48px] w-full rounded-[10px] border px-3.5 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
     hasError
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
-      : "border-border/60 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
+      : "border-border/65 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
   ].join(" ");
 }
 
@@ -450,20 +477,9 @@ function Field({ id, label, type, value, onChange, placeholder, autoComplete, er
   );
 }
 
-function MobileField({ id, label, type, value, onChange, placeholder, autoComplete, error }: FieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</label>
-      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder} autoComplete={autoComplete} className={mobileInputClass(!!error)} />
-      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
-    </div>
-  );
-}
-
 function GoogleIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
