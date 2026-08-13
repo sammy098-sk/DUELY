@@ -408,34 +408,34 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* ── MOBILE LAYOUT (<lg): Preserved Purpose-Built Mobile Surface ── */}
-      <div className="relative z-10 flex w-full flex-col items-center my-auto lg:hidden" style={{ maxWidth: "min(390px, 100%)" }}>
+      {/* ── MOBILE LAYOUT (<lg): Purpose-Built Compact Mobile Surface ── */}
+      <div className="relative z-10 flex w-full flex-col items-center my-auto lg:hidden" style={{ maxWidth: "min(380px, 100%)" }}>
         
         {/* Mobile Authentication Surface Card */}
         <div
-          className="w-full rounded-[28px] border border-border/50 bg-card px-5 py-6 sm:px-6 sm:py-7 shadow-[0_6px_28px_-6px_rgba(20,28,45,0.06)] transition-all duration-200"
-          style={{ boxShadow: "0 8px 32px -10px rgba(20, 28, 45, 0.07), 0 2px 6px -1px rgba(20, 28, 45, 0.02)" }}
+          className="w-full rounded-[24px] border border-border/50 bg-card px-4.5 py-4.5 sm:px-5 sm:py-5 shadow-[0_4px_24px_-4px_rgba(20,28,45,0.06)] transition-all duration-200"
+          style={{ boxShadow: "0 6px 28px -8px rgba(20, 28, 45, 0.07), 0 2px 4px -1px rgba(20, 28, 45, 0.02)" }}
         >
           {/* 1. DUELY WORDMARK */}
-          <div className="mb-3 text-center">
-            <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground/80">
+          <div className="mb-2 text-center">
+            <span className="inline-block font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/80">
               DUELY
             </span>
           </div>
 
           {/* 2. TOP ILLUSTRATION */}
-          <div className="mb-4 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary/70 text-foreground ring-4 ring-muted/40">
-              <FileText size={26} className="text-foreground/80 stroke-[1.75]" />
+          <div className="mb-2.5 flex justify-center">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary/70 text-foreground ring-3 ring-muted/40">
+              <FileText size={20} className="text-foreground/80 stroke-[1.75]" />
             </div>
           </div>
 
           {/* 3. HEADING & SUPPORTING TEXT */}
-          <div className="mb-4 text-center">
-            <h1 className="text-[20px] font-bold leading-tight tracking-[-0.03em] text-foreground">
+          <div className="mb-3 text-center">
+            <h1 className="text-[18px] font-bold leading-tight tracking-[-0.025em] text-foreground">
               {mode === "signin" ? "Welcome back" : "Create your account"}
             </h1>
-            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground px-1">
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted-foreground px-1">
               {mode === "signin"
                 ? "Sign in to keep your invoices moving."
                 : "Start chasing invoices automatically."}
@@ -443,15 +443,15 @@ export default function AuthPage() {
           </div>
 
           {/* 4. COMPACT SELECTOR TABS */}
-          <div className="mb-4 flex h-[46px] rounded-[10px] bg-muted/70 p-1">
+          <div className="mb-3 flex h-[38px] rounded-[8px] bg-muted/70 p-0.5">
             {(["signin", "signup"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => switchMode(m)}
-                className={`flex-1 rounded-[7px] text-[11px] font-bold uppercase tracking-wider transition-all duration-150 ${
+                className={`flex-1 rounded-[6px] text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 ${
                   mode === m
-                    ? "bg-card text-foreground shadow-xs"
+                    ? "bg-card text-foreground shadow-2xs"
                     : "text-muted-foreground hover:text-foreground/70"
                 }`}
               >
@@ -461,10 +461,10 @@ export default function AuthPage() {
           </div>
 
           {/* 5. FORM FIELDS & PRIMARY CTA */}
-          <form onSubmit={submit} className="space-y-3" noValidate>
+          <form onSubmit={submit} className="space-y-2.5" noValidate>
             {mode === "signup" && (
-              <div className="space-y-1">
-                <label htmlFor="mob-fullName" className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              <div className="space-y-0.5">
+                <label htmlFor="mob-fullName" className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   FULL NAME
                 </label>
                 <input
@@ -476,12 +476,12 @@ export default function AuthPage() {
                   autoComplete="name"
                   className={mobileInputClass(!!errors.fullName)}
                 />
-                {errors.fullName && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.fullName}</p>}
+                {errors.fullName && <p className="text-[10px] font-medium text-destructive mt-0.5">{errors.fullName}</p>}
               </div>
             )}
 
-            <div className="space-y-1">
-              <label htmlFor="mob-email" className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            <div className="space-y-0.5">
+              <label htmlFor="mob-email" className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                 EMAIL
               </label>
               <input
@@ -493,11 +493,11 @@ export default function AuthPage() {
                 autoComplete="email"
                 className={mobileInputClass(!!errors.email)}
               />
-              {errors.email && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.email}</p>}
+              {errors.email && <p className="text-[10px] font-medium text-destructive mt-0.5">{errors.email}</p>}
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="mob-password" className="block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            <div className="space-y-0.5">
+              <label htmlFor="mob-password" className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                 PASSWORD
               </label>
               <div className="relative">
@@ -509,25 +509,25 @@ export default function AuthPage() {
                   placeholder={mode === "signup" ? "Create a password" : "Enter your password"}
                   autoComplete={mode === "signin" ? "current-password" : "new-password"}
                   className={mobileInputClass(!!errors.password)}
-                  style={{ paddingRight: "2.75rem" }}
+                  style={{ paddingRight: "2.5rem" }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
                 >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
-              {errors.password && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.password}</p>}
+              {errors.password && <p className="text-[10px] font-medium text-destructive mt-0.5">{errors.password}</p>}
               
               {mode === "signin" && (
                 <div className="pt-0.5 text-right">
                   <button
                     type="button"
                     onClick={() => toast.info("Password reset coming soon.")}
-                    className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none"
+                    className="text-[10.5px] font-medium text-muted-foreground transition-colors hover:text-foreground outline-none"
                   >
                     Forgot password?
                   </button>
@@ -539,10 +539,10 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={busy}
-              className="mt-1.5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[10px] bg-foreground text-[12px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+              className="mt-1 flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] bg-foreground text-[11.5px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
             >
               {busy ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={15} className="animate-spin" />
               ) : mode === "signin" ? (
                 "SIGN IN"
               ) : (
@@ -552,9 +552,9 @@ export default function AuthPage() {
           </form>
 
           {/* Divider */}
-          <div className="my-3.5 flex items-center gap-3">
+          <div className="my-2.5 flex items-center gap-2.5">
             <span className="h-px flex-1 bg-border/50" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">OR</span>
+            <span className="text-[9.5px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">OR</span>
             <span className="h-px flex-1 bg-border/50" />
           </div>
 
@@ -563,14 +563,14 @@ export default function AuthPage() {
             type="button"
             onClick={google}
             disabled={busy}
-            className="flex h-[52px] w-full items-center justify-center gap-2.5 rounded-[10px] border border-border/70 bg-background text-[12.5px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+            className="flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] border border-border/70 bg-background text-[12px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
           >
             <GoogleIcon />
             Continue with Google
           </button>
 
           {/* Bottom Account Switcher Link */}
-          <p className="mt-4 text-center text-[12px] text-muted-foreground">
+          <p className="mt-3 text-center text-[11.5px] text-muted-foreground">
             {mode === "signup" ? (
               <>
                 Already have an account?{" "}
@@ -598,7 +598,7 @@ export default function AuthPage() {
         </div>
 
         {/* Footnote */}
-        <p className="mt-4 text-center text-[10px] font-medium uppercase tracking-widest text-muted-foreground/40">
+        <p className="mt-3 text-center text-[9.5px] font-medium uppercase tracking-widest text-muted-foreground/40">
           © {new Date().getFullYear()} Duely
         </p>
       </div>
@@ -632,7 +632,7 @@ function desktopInputClass(hasError: boolean) {
 
 function mobileInputClass(hasError: boolean) {
   return [
-    "h-[52px] w-full rounded-[10px] border px-3.5 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
+    "h-[42px] w-full rounded-[8px] border px-3 font-sans text-[13px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
     hasError
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
       : "border-border/65 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
