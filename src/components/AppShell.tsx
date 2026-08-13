@@ -13,9 +13,13 @@ import {
   GraduationCap,
   PanelLeftClose,
   PanelLeftOpen,
+  Sun,
+  Moon,
+  Home,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -28,6 +32,7 @@ interface AppShellProps {
 }
 
 export const navItems = [
+  { to: "/welcome", label: "Welcome", icon: Home },
   { to: "/quibot", label: "Quibot AI", icon: Sparkles },
   { to: "/invoices/new", label: "Invoices", icon: FileText, matchPrefix: "/invoices" },
   { to: "/estimates", label: "Estimates", icon: FileSpreadsheet },
@@ -41,6 +46,8 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { resolvedTheme, toggleTheme } = useTheme();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [name, setName] = useState<string>("");
   const [profile, setProfile] = useState<ExtendedProfile | null>(null);
@@ -111,7 +118,7 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
 
   const isNavItemActive = (to: string, matchPrefix?: string) => {
     if (matchPrefix) {
-      return pathname === to || pathname.startsWith(matchPrefix) || pathname === "/";
+      return pathname === to || pathname.startsWith(matchPrefix);
     }
     return pathname === to;
   };
@@ -150,12 +157,14 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
                 isNavItemActive={isNavItemActive}
                 onSignOut={handleSignOut}
                 logoUrl={profile?.company_logo_url}
+                resolvedTheme={resolvedTheme}
+                onToggleTheme={toggleTheme}
               />
             </SheetContent>
           </Sheet>
 
           {/* DUELY Brand Wordmark */}
-          <Link to="/invoices/new" className="flex items-center gap-2 group">
+          <Link to="/welcome" className="flex items-center gap-2 group">
             <span className="font-sans text-base font-extrabold uppercase tracking-[0.22em] text-foreground transition-opacity group-hover:opacity-85">
               DUELY
             </span>
@@ -203,6 +212,8 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
             isNavItemActive={isNavItemActive}
             onSignOut={handleSignOut}
             logoUrl={profile?.company_logo_url}
+            resolvedTheme={resolvedTheme}
+            onToggleTheme={toggleTheme}
           />
         </aside>
 
@@ -221,6 +232,8 @@ function SidebarContent({
   isNavItemActive,
   onSignOut,
   logoUrl,
+  resolvedTheme,
+  onToggleTheme,
 }: {
   name: string;
   pathname: string;
@@ -229,6 +242,8 @@ function SidebarContent({
   isNavItemActive: (to: string, matchPrefix?: string) => boolean;
   onSignOut: () => void;
   logoUrl?: string;
+  resolvedTheme: "light" | "dark";
+  onToggleTheme: () => void;
 }) {
   const initial = (name || "W").charAt(0).toUpperCase();
 
@@ -326,8 +341,29 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* 3. FIXED BOTTOM: Log out (Never Scrolls) */}
-      <div className="shrink-0 border-t border-border/60 p-3">
+      {/* 3. FIXED BOTTOM: Theme Toggle & Log out (Never Scrolls) */}
+      <div className="shrink-0 border-t border-border/60 p-3 space-y-1">
+        {/* Theme Toggle Button */}
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          title={collapsed ? `Theme: ${resolvedTheme === "dark" ? "Dark" : "Light"}` : undefined}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
+            collapsed ? "justify-center px-0" : "px-3"
+          )}
+        >
+          {resolvedTheme === "dark" ? (
+            <Sun className="size-3.5 text-amber-400 shrink-0" />
+          ) : (
+            <Moon className="size-3.5 text-emerald-500 shrink-0" />
+          )}
+          {!collapsed && (
+            <span>{resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+          )}
+        </button>
+
+        {/* Log Out Button */}
         <button
           type="button"
           onClick={onSignOut}
