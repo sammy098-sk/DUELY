@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, Loader2, FileText } from "lucide-react";
+import { Eye, EyeOff, Loader2, FileText, ArrowRight, CheckCircle2, Clock } from "lucide-react";
 
 export default function AuthPage() {
   const { user, loading } = useAuth();
@@ -76,11 +76,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background flex flex-col items-center justify-center overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-background flex flex-col items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-10">
 
-      {/* Barely visible background texture */}
+      {/* Subtle page background grid */}
       <svg
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.008]"
+        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.012]"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
@@ -92,59 +92,287 @@ export default function AuthPage() {
         <rect width="100%" height="100%" fill="url(#ledger-grid)" />
       </svg>
 
-      {/* Top line accent */}
+      {/* Top accent line */}
       <div className="pointer-events-none absolute left-0 right-0 top-0 h-[2px] bg-foreground/5" />
 
-      {/* ── DESKTOP LAYOUT (lg+): Preserved two-part/centered SaaS workspace ── */}
-      <div className="relative z-10 hidden w-full max-w-[420px] lg:flex lg:flex-col">
-        <div className="mb-10 text-center">
-          <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-            Duely
-          </span>
+      {/* ── DESKTOP LAYOUT (lg+): Unified 2-Column Outer Container (Reference Structure) ── */}
+      <div className="relative z-10 hidden w-full max-w-[1060px] lg:block">
+        <div
+          className="grid w-full grid-cols-12 rounded-[28px] border border-border/60 bg-card p-3 shadow-[0_12px_48px_-12px_rgba(20,28,45,0.08)]"
+          style={{ boxShadow: "0 16px 56px -16px rgba(20, 28, 45, 0.09), 0 2px 8px -2px rgba(20, 28, 45, 0.03)" }}
+        >
+          {/* LEFT PANEL: Duely Product Story & Workflow Visualization (Col 6) */}
+          <div className="col-span-6 flex flex-col justify-between rounded-[22px] bg-foreground p-8 xl:p-10 text-background relative overflow-hidden">
+            {/* Subtle inner grid watermark */}
+            <div 
+              className="absolute inset-0 opacity-[0.04] pointer-events-none"
+              style={{
+                backgroundImage: "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
+                backgroundSize: "28px 28px"
+              }}
+            />
+
+            {/* Top Brand & Descriptor */}
+            <div className="relative z-10">
+              <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.28em] text-background/60">
+                DUELY
+              </span>
+              <p className="mt-1 text-[12px] font-medium text-background/80">
+                Invoice chasing, without the chasing.
+              </p>
+            </div>
+
+            {/* Center Visual Workflow (Invoice Chasing Flow) */}
+            <div className="relative z-10 my-8 space-y-3">
+              {/* Step 1: Invoice Created */}
+              <div className="rounded-[12px] border border-background/10 bg-background/5 p-3.5 backdrop-blur-xs">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-mono font-medium text-background/90">INVOICE #0048</span>
+                  <span className="font-mono text-background/60">DUE AUG 18</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="font-serif text-[15px] font-semibold text-background">Acme Studio</span>
+                  <span className="font-mono text-[14px] font-medium text-background">₦420,000</span>
+                </div>
+              </div>
+
+              {/* Step Flow Indicator */}
+              <div className="flex items-center justify-center gap-2 text-[10.5px] font-semibold uppercase tracking-wider text-background/50 py-0.5">
+                <Clock size={12} className="text-background/50" />
+                <span>Automated Reminder Escalation</span>
+                <ArrowRight size={12} className="text-background/50" />
+              </div>
+
+              {/* Step 2: Reminder Sent Notification */}
+              <div className="rounded-[12px] border border-background/15 bg-background/10 p-3.5 backdrop-blur-xs">
+                <div className="flex items-center justify-between text-[10.5px] font-semibold uppercase tracking-wider text-background/60">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    REMINDER SENT
+                  </span>
+                  <span className="font-mono text-[10px]">Email & WhatsApp</span>
+                </div>
+                <p className="mt-1.5 text-[11.5px] italic text-background/85 line-clamp-1">
+                  "Friendly check-in regarding Invoice #0048 due soon..."
+                </p>
+              </div>
+
+              {/* Step 3: Status Stamp Badge */}
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2 text-[11px] font-medium text-background/80">
+                  <CheckCircle2 size={15} className="text-emerald-400" />
+                  <span>Payment Tracked</span>
+                </div>
+                {/* Rubber Stamp */}
+                <div className="rotate-[-3deg] rounded-[5px] border-2 border-emerald-400/80 px-2.5 py-0.5 opacity-90">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                    PAID
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Copy */}
+            <div className="relative z-10">
+              <h2 className="text-[20px] font-bold tracking-tight text-background">
+                Stop chasing invoices.
+              </h2>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-background/75 max-w-sm">
+                Create invoices, automate payment reminders, and know exactly when your clients have been contacted.
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT PANEL: Authentication Form (Col 6) */}
+          <div className="col-span-6 flex flex-col justify-center px-8 py-8 xl:px-12 xl:py-10">
+            <div className="mx-auto w-full max-w-[400px]">
+              
+              {/* Form Heading & Subtitle */}
+              <div className="mb-6">
+                <h1 className="text-[24px] font-bold leading-tight tracking-[-0.03em] text-foreground">
+                  {mode === "signin" ? "Welcome back" : "Create your account"}
+                </h1>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                  {mode === "signin"
+                    ? "Sign in to keep your invoices moving."
+                    : "Start chasing invoices automatically."}
+                </p>
+              </div>
+
+              {/* Tab Switcher */}
+              <div className="mb-6 flex border-b border-border/50">
+                {(["signin", "signup"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => switchMode(m)}
+                    className={`relative pb-3 pr-6 text-[11.5px] font-bold uppercase tracking-widest transition-colors duration-150 ${
+                      mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
+                    }`}
+                  >
+                    {m === "signin" ? "SIGN IN" : "CREATE ACCOUNT"}
+                    {mode === m && (
+                      <span className="absolute bottom-[-1px] left-0 right-6 h-[2px] rounded-full bg-foreground" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Google Social Auth (Top position per reference) */}
+              <button
+                type="button"
+                onClick={google}
+                disabled={busy}
+                className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[9px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+
+              {/* Divider */}
+              <div className="my-5 flex items-center gap-3">
+                <span className="h-px flex-1 bg-border/60" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">OR</span>
+                <span className="h-px flex-1 bg-border/60" />
+              </div>
+
+              {/* Form Fields */}
+              <form onSubmit={submit} className="space-y-3.5" noValidate>
+                {mode === "signup" && (
+                  <div className="space-y-1.5">
+                    <label htmlFor="desk-fullName" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      FULL NAME
+                    </label>
+                    <input
+                      id="desk-fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Your name"
+                      autoComplete="name"
+                      className={desktopInputClass(!!errors.fullName)}
+                    />
+                    {errors.fullName && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.fullName}</p>}
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label htmlFor="desk-email" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                    EMAIL ADDRESS
+                  </label>
+                  <input
+                    id="desk-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className={desktopInputClass(!!errors.email)}
+                  />
+                  {errors.email && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.email}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="desk-password" className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      PASSWORD
+                    </label>
+                    {mode === "signin" && (
+                      <button
+                        type="button"
+                        onClick={() => toast.info("Password reset coming soon.")}
+                        className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors outline-none"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="desk-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={mode === "signup" ? "Create a password" : "Enter your password"}
+                      autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                      className={desktopInputClass(!!errors.password)}
+                      style={{ paddingRight: "3rem" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {errors.password && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.password}</p>}
+                </div>
+
+                {/* Primary CTA Button */}
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-foreground text-[12.5px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60"
+                >
+                  {busy ? (
+                    <Loader2 size={17} className="animate-spin" />
+                  ) : mode === "signin" ? (
+                    "SIGN IN"
+                  ) : (
+                    "CREATE ACCOUNT"
+                  )}
+                </button>
+              </form>
+
+              {/* Bottom Account Switcher Link */}
+              <p className="mt-6 text-center text-[12.5px] text-muted-foreground">
+                {mode === "signup" ? (
+                  <>
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      onClick={() => switchMode("signin")}
+                      className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                    >
+                      Sign in
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Don't have an account?{" "}
+                    <button
+                      type="button"
+                      onClick={() => switchMode("signup")}
+                      className="font-semibold text-foreground hover:underline underline-offset-2 outline-none"
+                    >
+                      Create account
+                    </button>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
         </div>
-
-        <div className="mb-8 text-center">
-          <h1 className="text-[26px] font-bold leading-snug tracking-[-0.03em] text-foreground">
-            {mode === "signin" ? "Welcome back." : "Create your account"}
-          </h1>
-          <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-            {mode === "signin"
-              ? "Sign in to keep your invoices moving."
-              : "Start chasing invoices automatically."}
-          </p>
-        </div>
-
-        <DesktopTabs mode={mode} onSwitch={switchMode} />
-
-        <AuthForm
-          mode={mode}
-          email={email} setEmail={setEmail}
-          password={password} setPassword={setPassword}
-          fullName={fullName} setFullName={setFullName}
-          showPassword={showPassword} setShowPassword={setShowPassword}
-          busy={busy} errors={errors}
-          onSubmit={submit}
-          onGoogle={google}
-          onSwitchMode={switchMode}
-        />
       </div>
 
-      {/* ── MOBILE LAYOUT (<lg): Exact Hierarchy & Spacing Refinement ── */}
+      {/* ── MOBILE LAYOUT (<lg): Preserved Purpose-Built Mobile Surface ── */}
       <div className="relative z-10 flex w-full flex-col items-center my-auto lg:hidden" style={{ maxWidth: "min(390px, 100%)" }}>
-
-        {/* ── Mobile Authentication Surface Card ── */}
+        
+        {/* Mobile Authentication Surface Card */}
         <div
           className="w-full rounded-[28px] border border-border/50 bg-card px-5 py-6 sm:px-6 sm:py-7 shadow-[0_6px_28px_-6px_rgba(20,28,45,0.06)] transition-all duration-200"
           style={{ boxShadow: "0 8px 32px -10px rgba(20, 28, 45, 0.07), 0 2px 6px -1px rgba(20, 28, 45, 0.02)" }}
         >
-          {/* 1. DUELY WORDMARK (Small, understated, centered at the top of the auth surface) */}
+          {/* 1. DUELY WORDMARK */}
           <div className="mb-3 text-center">
             <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground/80">
               DUELY
             </span>
           </div>
 
-          {/* 2. TOP ILLUSTRATION (Invoice/Document Icon, centered, NO badge attached) */}
+          {/* 2. TOP ILLUSTRATION */}
           <div className="mb-4 flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary/70 text-foreground ring-4 ring-muted/40">
               <FileText size={26} className="text-foreground/80 stroke-[1.75]" />
@@ -163,7 +391,7 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* 4. COMPACT SELECTOR TABS (approx 48px container, refined styling) */}
+          {/* 4. COMPACT SELECTOR TABS */}
           <div className="mb-4 flex h-[46px] rounded-[10px] bg-muted/70 p-1">
             {(["signin", "signup"] as const).map((m) => (
               <button
@@ -256,7 +484,7 @@ export default function AuthPage() {
               )}
             </div>
 
-            {/* 6. PRIMARY CTA (52px height) */}
+            {/* Primary Action CTA */}
             <button
               type="submit"
               disabled={busy}
@@ -272,14 +500,14 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {/* 7. DIVIDER */}
+          {/* Divider */}
           <div className="my-3.5 flex items-center gap-3">
             <span className="h-px flex-1 bg-border/50" />
             <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">OR</span>
             <span className="h-px flex-1 bg-border/50" />
           </div>
 
-          {/* 8. GOOGLE SOCIAL AUTHENTICATION (52px height) */}
+          {/* Google Social Auth */}
           <button
             type="button"
             onClick={google}
@@ -290,7 +518,7 @@ export default function AuthPage() {
             Continue with Google
           </button>
 
-          {/* 9. BOTTOM ACCOUNT LINK */}
+          {/* Bottom Account Switcher Link */}
           <p className="mt-4 text-center text-[12px] text-muted-foreground">
             {mode === "signup" ? (
               <>
@@ -327,121 +555,11 @@ export default function AuthPage() {
   );
 }
 
-/* ── Desktop Shared Sub-Components ──────────────────────────── */
-
-function DesktopTabs({ mode, onSwitch }: { mode: "signin" | "signup"; onSwitch: (m: "signin" | "signup") => void }) {
-  return (
-    <div className="mb-8 flex items-end justify-center gap-8 border-b border-border/50">
-      {(["signin", "signup"] as const).map((m) => (
-        <button
-          key={m}
-          type="button"
-          onClick={() => onSwitch(m)}
-          className={`relative pb-3 text-[11.5px] font-bold uppercase tracking-widest transition-colors duration-150 ${
-            mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
-          }`}
-        >
-          {m === "signin" ? "Sign In" : "Create Account"}
-          {mode === m && (
-            <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] rounded-full bg-foreground" />
-          )}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-interface AuthFormProps {
-  mode: "signin" | "signup";
-  email: string; setEmail: (v: string) => void;
-  password: string; setPassword: (v: string) => void;
-  fullName: string; setFullName: (v: string) => void;
-  showPassword: boolean; setShowPassword: (v: boolean) => void;
-  busy: boolean;
-  errors: { [key: string]: string };
-  onSubmit: (e: React.FormEvent) => void;
-  onGoogle: () => void;
-  onSwitchMode: (m: "signin" | "signup") => void;
-}
-
-function AuthForm({ mode, email, setEmail, password, setPassword, fullName, setFullName, showPassword, setShowPassword, busy, errors, onSubmit, onGoogle, onSwitchMode }: AuthFormProps) {
-  return (
-    <>
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        {mode === "signup" && (
-          <Field id="fullName" label="Full Name" type="text" value={fullName} onChange={setFullName}
-            placeholder="Jane Doe" autoComplete="name" error={errors.fullName} />
-        )}
-        <Field id="email" label="Email Address" type="email" value={email} onChange={setEmail}
-          placeholder="you@example.com" autoComplete="email" error={errors.email} />
-
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="desk-password" className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Password</label>
-            {mode === "signin" && (
-              <button type="button" onClick={() => toast.info("Password reset coming soon.")}
-                className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors outline-none">
-                Forgot password?
-              </button>
-            )}
-          </div>
-          <div className="relative">
-            <input
-              id="desk-password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              className={desktopInputClass(!!errors.password)}
-              style={{ paddingRight: "3rem" }}
-            />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none">
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-          {errors.password && <p className="text-[11px] font-medium text-destructive">{errors.password}</p>}
-        </div>
-
-        <button type="submit" disabled={busy}
-          className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-foreground text-[13px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60">
-          {busy ? <Loader2 size={17} className="animate-spin" /> : mode === "signin" ? "Sign In" : "Create Account"}
-        </button>
-      </form>
-
-      <div className="my-7 flex items-center gap-4">
-        <span className="h-px flex-1 bg-border/60" />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">or</span>
-        <span className="h-px flex-1 bg-border/60" />
-      </div>
-
-      <button type="button" onClick={onGoogle} disabled={busy}
-        className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[9px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60">
-        <GoogleIcon />
-        Continue with Google
-      </button>
-
-      <p className="mt-8 text-center text-[12.5px] text-muted-foreground">
-        {mode === "signup" ? (
-          <>Already have an account?{" "}<button type="button" onClick={() => onSwitchMode("signin")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">Sign in</button></>
-        ) : (
-          <>Don't have an account?{" "}<button type="button" onClick={() => onSwitchMode("signup")} className="font-semibold text-foreground hover:underline underline-offset-2 outline-none">Create one</button></>
-        )}
-      </p>
-
-      <p className="mt-12 text-center text-[10.5px] font-medium uppercase tracking-widest text-muted-foreground opacity-50">
-        © {new Date().getFullYear()} Duely
-      </p>
-    </>
-  );
-}
-
 /* ── Helper Functions & Components ───────────────────────────── */
 
 function desktopInputClass(hasError: boolean) {
   return [
-    "h-[50px] w-full rounded-[9px] border px-4 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/50 bg-background",
+    "h-[48px] w-full rounded-[9px] border px-4 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
     hasError
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
       : "border-border/70 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
@@ -455,23 +573,6 @@ function mobileInputClass(hasError: boolean) {
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
       : "border-border/65 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
   ].join(" ");
-}
-
-interface FieldProps {
-  id: string; label: string; type: string; value: string;
-  onChange: (v: string) => void; placeholder?: string;
-  autoComplete?: string; error?: string;
-}
-
-function Field({ id, label, type, value, onChange, placeholder, autoComplete, error }: FieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</label>
-      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder} autoComplete={autoComplete} className={desktopInputClass(!!error)} />
-      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
-    </div>
-  );
 }
 
 function GoogleIcon() {
