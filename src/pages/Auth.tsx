@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, Loader2, FileText, ArrowRight, CheckCircle2, Clock } from "lucide-react";
+import { Eye, EyeOff, Loader2, FileText, CheckCircle2, ShieldCheck } from "lucide-react";
 
 export default function AuthPage() {
   const { user, loading } = useAuth();
@@ -12,7 +12,9 @@ export default function AuthPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(true);
 
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,6 +29,7 @@ export default function AuthPage() {
     setErrors({});
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setFullName("");
   }
 
@@ -34,7 +37,11 @@ export default function AuthPage() {
     const newErrors: { [key: string]: string } = {};
     if (!email || !email.includes("@")) newErrors.email = "Enter a valid email address.";
     if (!password || password.length < 6) newErrors.password = "Password must be at least 6 characters.";
-    if (mode === "signup" && !fullName.trim()) newErrors.fullName = "Please enter your full name.";
+    if (mode === "signup") {
+      if (!fullName.trim()) newErrors.fullName = "Please enter your full name.";
+      if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match.";
+      if (!agreeTerms) newErrors.terms = "You must agree to the Terms & Conditions.";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -76,123 +83,103 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background flex flex-col items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-10">
+    <div className="relative min-h-screen bg-[#f3f4f6] flex flex-col items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-10">
 
-      {/* Subtle page background grid */}
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.012]"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <defs>
-          <pattern id="ledger-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="0.75" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#ledger-grid)" />
-      </svg>
+      {/* Decorative concentric rings in background corners (matching reference image background) */}
+      <div className="pointer-events-none absolute -right-16 -top-16 opacity-30 text-border">
+        <ConcentricRings />
+      </div>
+      <div className="pointer-events-none absolute -left-16 -bottom-16 opacity-30 text-border">
+        <ConcentricRings />
+      </div>
 
-      {/* Top accent line */}
-      <div className="pointer-events-none absolute left-0 right-0 top-0 h-[2px] bg-foreground/5" />
-
-      {/* ── DESKTOP LAYOUT (lg+): Unified 2-Column Outer Container (Reference Structure) ── */}
+      {/* ── DESKTOP LAYOUT (lg+): Matching Desktop Reference Image Composition ── */}
       <div className="relative z-10 hidden w-full max-w-[1060px] lg:block">
         <div
-          className="grid w-full grid-cols-12 rounded-[28px] border border-border/60 bg-card p-3 shadow-[0_12px_48px_-12px_rgba(20,28,45,0.08)]"
-          style={{ boxShadow: "0 16px 56px -16px rgba(20, 28, 45, 0.09), 0 2px 8px -2px rgba(20, 28, 45, 0.03)" }}
+          className="grid w-full grid-cols-12 rounded-[28px] border border-border/60 bg-card p-3.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.08)]"
         >
-          {/* LEFT PANEL: Duely Product Story & Workflow Visualization (Col 6) */}
-          <div className="col-span-6 flex flex-col justify-between rounded-[22px] bg-foreground p-8 xl:p-10 text-background relative overflow-hidden">
-            {/* Subtle inner grid watermark */}
-            <div 
-              className="absolute inset-0 opacity-[0.04] pointer-events-none"
-              style={{
-                backgroundImage: "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
-                backgroundSize: "28px 28px"
-              }}
-            />
+          {/* LEFT PANEL: Vibrant Navy Product Panel with Arch Illustration & Floating Invoice Card */}
+          <div className="col-span-5 flex flex-col justify-between rounded-[22px] bg-foreground p-8 text-background relative overflow-hidden min-h-[580px]">
+            
+            {/* Concentric rings watermark inside top-left and bottom-right of left panel */}
+            <div className="pointer-events-none absolute -left-12 -top-12 opacity-15 text-background">
+              <ConcentricRings />
+            </div>
+            <div className="pointer-events-none absolute -right-12 -bottom-12 opacity-15 text-background">
+              <ConcentricRings />
+            </div>
 
-            {/* Top Brand & Descriptor */}
+            {/* Top Brand Header */}
             <div className="relative z-10">
-              <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.28em] text-background/60">
+              <span className="inline-block font-sans text-[11px] font-bold uppercase tracking-[0.28em] text-background/70">
                 DUELY
               </span>
-              <p className="mt-1 text-[12px] font-medium text-background/80">
+              <p className="mt-0.5 text-[12px] font-medium text-background/80">
                 Invoice chasing, without the chasing.
               </p>
             </div>
 
-            {/* Center Visual Workflow (Invoice Chasing Flow) */}
-            <div className="relative z-10 my-8 space-y-3">
-              {/* Step 1: Invoice Created */}
-              <div className="rounded-[12px] border border-background/10 bg-background/5 p-3.5 backdrop-blur-xs">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-mono font-medium text-background/90">INVOICE #0048</span>
-                  <span className="font-mono text-background/60">DUE AUG 18</span>
+            {/* Center Product Illustration: Arch Shape Container + Floating Invoice Card */}
+            <div className="relative z-10 my-auto py-6 flex flex-col items-center justify-center">
+              {/* Arch Background Container */}
+              <div className="relative flex flex-col items-center justify-center w-[220px] h-[250px] rounded-t-full bg-background/10 border border-background/10 p-4">
+                
+                {/* Floating Micro Status Badges */}
+                <div className="absolute top-6 -left-4 rounded-full bg-background text-foreground px-2.5 py-1 text-[10px] font-bold shadow-md flex items-center gap-1 animate-bounce">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Reminder Sent
                 </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="font-serif text-[15px] font-semibold text-background">Acme Studio</span>
-                  <span className="font-mono text-[14px] font-medium text-background">₦420,000</span>
-                </div>
-              </div>
 
-              {/* Step Flow Indicator */}
-              <div className="flex items-center justify-center gap-2 text-[10.5px] font-semibold uppercase tracking-wider text-background/50 py-0.5">
-                <Clock size={12} className="text-background/50" />
-                <span>Automated Reminder Escalation</span>
-                <ArrowRight size={12} className="text-background/50" />
-              </div>
-
-              {/* Step 2: Reminder Sent Notification */}
-              <div className="rounded-[12px] border border-background/15 bg-background/10 p-3.5 backdrop-blur-xs">
-                <div className="flex items-center justify-between text-[10.5px] font-semibold uppercase tracking-wider text-background/60">
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    REMINDER SENT
-                  </span>
-                  <span className="font-mono text-[10px]">Email & WhatsApp</span>
+                <div className="absolute top-16 -right-5 rounded-full bg-background text-foreground px-2.5 py-1 text-[10px] font-bold shadow-md flex items-center gap-1">
+                  <CheckCircle2 size={12} className="text-emerald-500" />
+                  Paid
                 </div>
-                <p className="mt-1.5 text-[11.5px] italic text-background/85 line-clamp-1">
-                  "Friendly check-in regarding Invoice #0048 due soon..."
-                </p>
-              </div>
 
-              {/* Step 3: Status Stamp Badge */}
-              <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-2 text-[11px] font-medium text-background/80">
-                  <CheckCircle2 size={15} className="text-emerald-400" />
-                  <span>Payment Tracked</span>
-                </div>
-                {/* Rubber Stamp */}
-                <div className="rotate-[-3deg] rounded-[5px] border-2 border-emerald-400/80 px-2.5 py-0.5 opacity-90">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400">
-                    PAID
-                  </span>
+                {/* Floating Invoice Summary Card */}
+                <div className="w-[190px] rounded-xl bg-background text-foreground p-4 shadow-xl border border-border/40 rotate-[-1deg] transition-transform hover:rotate-0 duration-300">
+                  <div className="flex items-center justify-between border-b border-rule pb-2.5 mb-2.5">
+                    <span className="font-mono text-[10px] font-bold text-muted-foreground">#0048</span>
+                    <span className="font-mono text-[10px] text-muted-foreground">DUE AUG 18</span>
+                  </div>
+                  <p className="font-serif font-bold text-[13px] text-foreground">Acme Studio</p>
+                  <p className="font-mono text-[17px] font-bold text-foreground mt-1">₦420,000</p>
+                  <div className="mt-2.5 flex items-center justify-between">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Status</span>
+                    <span className="rounded-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                      Automated
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Copy */}
+            {/* Bottom Product Quote & Author Badge */}
             <div className="relative z-10">
-              <h2 className="text-[20px] font-bold tracking-tight text-background">
-                Stop chasing invoices.
-              </h2>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-background/75 max-w-sm">
-                Create invoices, automate payment reminders, and know exactly when your clients have been contacted.
+              <p className="text-[12.5px] leading-relaxed text-background/85">
+                "Duely follows up on unpaid invoices automatically so freelancers get paid on time without awkward emails."
               </p>
+              <div className="mt-3.5 flex items-center gap-2.5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20 text-background">
+                  <ShieldCheck size={16} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-background">Duely Workspace</p>
+                  <p className="text-[10px] text-background/60">Automated Invoice Chasing</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT PANEL: Authentication Form (Col 6) */}
-          <div className="col-span-6 flex flex-col justify-center px-8 py-8 xl:px-12 xl:py-10">
-            <div className="mx-auto w-full max-w-[400px]">
+          {/* RIGHT PANEL: Authentication Form (Col 7) */}
+          <div className="col-span-7 flex flex-col justify-center px-8 py-6 xl:px-12 xl:py-8">
+            <div className="mx-auto w-full max-w-[440px]">
               
               {/* Form Heading & Subtitle */}
-              <div className="mb-6">
-                <h1 className="text-[24px] font-bold leading-tight tracking-[-0.03em] text-foreground">
-                  {mode === "signin" ? "Welcome back" : "Create your account"}
+              <div className="mb-5">
+                <h1 className="text-[26px] font-bold leading-tight tracking-[-0.03em] text-foreground">
+                  {mode === "signin" ? "Welcome Back" : "Create Your Account"}
                 </h1>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-[13px] text-muted-foreground">
                   {mode === "signin"
                     ? "Sign in to keep your invoices moving."
                     : "Start chasing invoices automatically."}
@@ -200,48 +187,48 @@ export default function AuthPage() {
               </div>
 
               {/* Tab Switcher */}
-              <div className="mb-6 flex border-b border-border/50">
-                {(["signin", "signup"] as const).map((m) => (
+              <div className="mb-5 flex border-b border-border/50">
+                {(["signup", "signin"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => switchMode(m)}
-                    className={`relative pb-3 pr-6 text-[11.5px] font-bold uppercase tracking-widest transition-colors duration-150 ${
+                    className={`relative pb-2.5 pr-6 text-[11.5px] font-bold uppercase tracking-widest transition-colors duration-150 ${
                       mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
                     }`}
                   >
-                    {m === "signin" ? "SIGN IN" : "CREATE ACCOUNT"}
+                    {m === "signup" ? "CREATE ACCOUNT" : "SIGN IN"}
                     {mode === m && (
-                      <span className="absolute bottom-[-1px] left-0 right-6 h-[2px] rounded-full bg-foreground" />
+                      <span className="absolute bottom-[-1px] left-0 right-6 h-[2.5px] rounded-full bg-foreground" />
                     )}
                   </button>
                 ))}
               </div>
 
-              {/* Google Social Auth (Top position per reference) */}
+              {/* Social Login Button at Top */}
               <button
                 type="button"
                 onClick={google}
                 disabled={busy}
-                className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[9px] border border-border/70 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60"
+                className="flex h-[48px] w-full items-center justify-center gap-2.5 rounded-[10px] border border-border/80 bg-background text-[13px] font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60 shadow-2xs"
               >
                 <GoogleIcon />
                 Continue with Google
               </button>
 
               {/* Divider */}
-              <div className="my-5 flex items-center gap-3">
+              <div className="my-4 flex items-center gap-3">
                 <span className="h-px flex-1 bg-border/60" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">OR</span>
+                <span className="text-[10.5px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Or</span>
                 <span className="h-px flex-1 bg-border/60" />
               </div>
 
               {/* Form Fields */}
               <form onSubmit={submit} className="space-y-3.5" noValidate>
                 {mode === "signup" && (
-                  <div className="space-y-1.5">
-                    <label htmlFor="desk-fullName" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                      FULL NAME
+                  <div className="space-y-1">
+                    <label htmlFor="desk-fullName" className="block text-[11px] font-semibold text-muted-foreground">
+                      Full Name
                     </label>
                     <input
                       id="desk-fullName"
@@ -256,9 +243,9 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <label htmlFor="desk-email" className="block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                    EMAIL ADDRESS
+                <div className="space-y-1">
+                  <label htmlFor="desk-email" className="block text-[11px] font-semibold text-muted-foreground">
+                    Email address
                   </label>
                   <input
                     id="desk-email"
@@ -272,12 +259,58 @@ export default function AuthPage() {
                   {errors.email && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.email}</p>}
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="desk-password" className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                      PASSWORD
-                    </label>
-                    {mode === "signin" && (
+                {/* Password & Confirm Password Grid for Signup Mode (matching reference image grid!) */}
+                {mode === "signup" ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label htmlFor="desk-password" className="block text-[11px] font-semibold text-muted-foreground">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="desk-password"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Min 6 chars"
+                          autoComplete="new-password"
+                          className={desktopInputClass(!!errors.password)}
+                          style={{ paddingRight: "2.25rem" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                        >
+                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
+                      {errors.password && <p className="text-[10px] font-medium text-destructive mt-0.5">{errors.password}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label htmlFor="desk-confirmPassword" className="block text-[11px] font-semibold text-muted-foreground">
+                        Confirm Password
+                      </label>
+                      <input
+                        id="desk-confirmPassword"
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Min 6 chars"
+                        autoComplete="new-password"
+                        className={desktopInputClass(!!errors.confirmPassword)}
+                      />
+                      {errors.confirmPassword && <p className="text-[10px] font-medium text-destructive mt-0.5">{errors.confirmPassword}</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="desk-password-single" className="text-[11px] font-semibold text-muted-foreground">
+                        Password
+                      </label>
                       <button
                         type="button"
                         onClick={() => toast.info("Password reset coming soon.")}
@@ -285,49 +318,67 @@ export default function AuthPage() {
                       >
                         Forgot password?
                       </button>
-                    )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="desk-password-single"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        autoComplete="current-password"
+                        className={desktopInputClass(!!errors.password)}
+                        style={{ paddingRight: "3rem" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {errors.password && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.password}</p>}
                   </div>
-                  <div className="relative">
-                    <input
-                      id="desk-password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={mode === "signup" ? "Create a password" : "Enter your password"}
-                      autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                      className={desktopInputClass(!!errors.password)}
-                      style={{ paddingRight: "3rem" }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+                )}
+
+                {/* Terms Checkbox */}
+                {mode === "signup" && (
+                  <div className="pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={agreeTerms}
+                        onChange={(e) => setAgreeTerms(e.target.checked)}
+                        className="h-4 w-4 rounded-xs border-border text-foreground focus:ring-foreground"
+                      />
+                      <span className="text-[11.5px] text-muted-foreground">
+                        I agree to the <span className="underline font-medium text-foreground">Terms & Conditions</span>
+                      </span>
+                    </label>
+                    {errors.terms && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.terms}</p>}
                   </div>
-                  {errors.password && <p className="text-[10.5px] font-medium text-destructive mt-0.5">{errors.password}</p>}
-                </div>
+                )}
 
                 {/* Primary CTA Button */}
                 <button
                   type="submit"
                   disabled={busy}
-                  className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[9px] bg-foreground text-[12.5px] font-bold uppercase tracking-widest text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.984] disabled:pointer-events-none disabled:opacity-60"
+                  className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-foreground text-[13px] font-bold text-background transition-all duration-150 hover:bg-foreground/90 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60 shadow-xs"
                 >
                   {busy ? (
                     <Loader2 size={17} className="animate-spin" />
                   ) : mode === "signin" ? (
-                    "SIGN IN"
+                    "Sign In"
                   ) : (
-                    "CREATE ACCOUNT"
+                    "Create Account"
                   )}
                 </button>
               </form>
 
               {/* Bottom Account Switcher Link */}
-              <p className="mt-6 text-center text-[12.5px] text-muted-foreground">
+              <p className="mt-5 text-center text-[12.5px] text-muted-foreground">
                 {mode === "signup" ? (
                   <>
                     Already have an account?{" "}
@@ -555,11 +606,24 @@ export default function AuthPage() {
   );
 }
 
-/* ── Helper Functions & Components ───────────────────────────── */
+/* ── Helper Functions & SVG Components ───────────────────────────── */
+
+function ConcentricRings() {
+  return (
+    <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="120" cy="120" r="110" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+      <circle cx="120" cy="120" r="90" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="120" cy="120" r="70" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+      <circle cx="120" cy="120" r="50" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="120" cy="120" r="30" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
+      <circle cx="120" cy="120" r="10" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
 
 function desktopInputClass(hasError: boolean) {
   return [
-    "h-[48px] w-full rounded-[9px] border px-4 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
+    "h-[48px] w-full rounded-[9px] border px-3.5 font-sans text-[13.5px] transition-all duration-150 outline-none placeholder:text-muted-foreground/40 bg-background",
     hasError
       ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
       : "border-border/70 focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10",
