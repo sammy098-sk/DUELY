@@ -11,7 +11,6 @@ import {
   Loader2,
   Check,
   ChevronDown,
-  FileText,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
@@ -61,6 +60,8 @@ export default function NewInvoice() {
     phone: "+234 800 000 0000",
     address: "Lagos, Nigeria",
     bankDetails: "Bank: Example Bank\nAccount Number: 0123456789",
+    companyLogoUrl: "",
+    signatureUrl: "",
   });
   const [issueDate, setIssueDate] = useState(today());
   const [dueDate, setDueDate] = useState(inDays(14));
@@ -93,14 +94,17 @@ export default function NewInvoice() {
         .maybeSingle();
 
       if (profile) {
+        const ext = profile as any;
         setSender({
-          name: profile.business_name || "Duely Studio",
-          email: profile.contact_email || user.email || "hello@example.com",
-          phone: profile.phone || "+234 800 000 0000",
-          address: profile.address || "Lagos, Nigeria",
-          bankDetails: profile.bank_details || "Bank: Example Bank\nAccount Number: 0123456789",
+          name: ext.business_name || ext.company_name || "Duely Studio",
+          email: ext.contact_email || user.email || "hello@example.com",
+          phone: ext.phone || "+234 800 000 0000",
+          address: ext.address || "Lagos, Nigeria",
+          bankDetails: ext.bank_details || "Bank: Example Bank\nAccount Number: 0123456789",
+          companyLogoUrl: ext.company_logo_url || "",
+          signatureUrl: ext.signature_url || "",
         });
-        if (profile.default_currency) setCurrency(profile.default_currency);
+        if (ext.default_currency) setCurrency(ext.default_currency);
       }
     })();
   }, [user]);
@@ -394,16 +398,24 @@ export default function NewInvoice() {
                 
                 {/* 1. INVOICE HEADER */}
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-6">
-                  {/* Left: Duely / Business logo mark */}
+                  {/* Left: Duely / Business logo mark or Company Logo */}
                   <div className="flex items-center gap-3">
-                    <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight">
-                      D
-                    </div>
+                    {sender.companyLogoUrl ? (
+                      <img
+                        src={sender.companyLogoUrl}
+                        alt="Company Logo"
+                        className="h-12 w-auto max-w-[140px] object-contain rounded border border-border/40 shrink-0"
+                      />
+                    ) : (
+                      <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight shrink-0">
+                        D
+                      </div>
+                    )}
                     <div>
                       <h2 className="text-2xl font-extrabold tracking-tight text-foreground uppercase">
                         INVOICE
                       </h2>
-                      <p className="text-xs text-muted-foreground">{sender.name}</p>
+                      <p className="text-xs font-semibold text-muted-foreground">{sender.name}</p>
                     </div>
                   </div>
 
@@ -642,17 +654,33 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 6. TERMS & CONDITIONS */}
-                <div className="border-t border-border/70 pt-4 text-xs space-y-1">
-                  <p className="font-bold uppercase tracking-wider text-muted-foreground text-[10px]">
-                    Terms & Conditions
-                  </p>
-                  <Textarea
-                    rows={2}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="resize-none text-xs text-muted-foreground border-transparent hover:border-border focus:border-foreground/30 bg-transparent p-1"
-                  />
+                {/* 6. SIGNATURE & TERMS & CONDITIONS */}
+                <div className="border-t border-border/70 pt-4 space-y-4">
+                  {/* Authorized Signature (if uploaded in Profile/Settings) */}
+                  {sender.signatureUrl && (
+                    <div className="space-y-1">
+                      <p className="font-bold uppercase tracking-wider text-muted-foreground text-[10px]">
+                        Authorized Signature
+                      </p>
+                      <img
+                        src={sender.signatureUrl}
+                        alt="Signature"
+                        className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40"
+                      />
+                    </div>
+                  )}
+
+                  <div className="text-xs space-y-1">
+                    <p className="font-bold uppercase tracking-wider text-muted-foreground text-[10px]">
+                      Terms & Conditions
+                    </p>
+                    <Textarea
+                      rows={2}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="resize-none text-xs text-muted-foreground border-transparent hover:border-border focus:border-foreground/30 bg-transparent p-1"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

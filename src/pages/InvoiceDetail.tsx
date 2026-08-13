@@ -38,12 +38,12 @@ export default function InvoiceDetail() {
         invoice: inv.data as unknown as InvoiceRecord,
         items: (items.data ?? []) as unknown as LineItem[],
         reminders: (reminders.data ?? []) as unknown as ReminderRow[],
-        profile: profile.data,
+        profile: profile.data as any,
       };
     },
   });
 
-  if (!data) return <p className="label-caps">Loading invoice…</p>;
+  if (!data) return <p className="label-caps p-8">Loading invoice…</p>;
   const { invoice, items, reminders, profile } = data;
   const status = effectiveStatus(invoice);
   const totals = computeTotals(items, Number(invoice.tax_rate), Number(invoice.discount));
@@ -84,152 +84,180 @@ export default function InvoiceDetail() {
   }
 
   return (
-    <AppShell>
-      <div className="space-y-8">
-      <div className="no-print flex flex-wrap items-center gap-3">
-        <Button onClick={chase} disabled={sending || status === "paid" || status === "draft"}>
-          <BellRing className="size-4" /> {sending ? "Drafting…" : "Send reminder now"}
-        </Button>
-        <Button variant="outline" onClick={() => window.print()}>
-          <Printer className="size-4" /> Download PDF
-        </Button>
-        {status !== "paid" && (
-          <Button variant="outline" onClick={markPaid}>
-            <CheckCircle2 className="size-4" /> Mark paid
+    <AppShell pageTitle={`Invoice ${invoice.number}`}>
+      <div className="space-y-8 p-4 lg:p-8 max-w-4xl mx-auto">
+        <div className="no-print flex flex-wrap items-center gap-3">
+          <Button onClick={chase} disabled={sending || status === "paid" || status === "draft"}>
+            <BellRing className="size-4" /> {sending ? "Drafting…" : "Send reminder now"}
           </Button>
-        )}
-      </div>
+          <Button variant="outline" onClick={() => window.print()}>
+            <Printer className="size-4" /> Download PDF
+          </Button>
+          {status !== "paid" && (
+            <Button variant="outline" onClick={markPaid}>
+              <CheckCircle2 className="size-4" /> Mark paid
+            </Button>
+          )}
+        </div>
 
-      <article className="ledger-panel print-sheet p-8 sm:p-10">
-        <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">
-          <div>
-            <h1 className="text-3xl">{profile?.business_name || "Invoice"}</h1>
-            <p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
-              {profile?.address}
-              {profile?.contact_email ? `\n${profile.contact_email}` : ""}
-              {profile?.phone ? `\n${profile.phone}` : ""}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="money text-sm">{invoice.number}</p>
-            <p className="label-caps mt-1">issued {invoice.issue_date}</p>
-            <p className="label-caps">due {invoice.due_date}</p>
-            <div className="mt-3">
-              <StampBadge status={status} size="md" />
+        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-6">
+          <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">
+            <div className="flex items-center gap-3">
+              {profile?.company_logo_url ? (
+                <img
+                  src={profile.company_logo_url}
+                  alt="Company Logo"
+                  className="h-12 w-auto max-w-[140px] object-contain rounded border border-border/40 shrink-0"
+                />
+              ) : null}
+              <div>
+                <h1 className="text-3xl font-extrabold text-foreground">
+                  {profile?.business_name || profile?.company_name || "Invoice"}
+                </h1>
+                <p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
+                  {profile?.address}
+                  {profile?.contact_email ? `\n${profile.contact_email}` : ""}
+                  {profile?.phone ? `\n${profile.phone}` : ""}
+                </p>
+              </div>
             </div>
-          </div>
-        </header>
+            <div className="text-right">
+              <p className="money text-sm font-bold text-foreground">{invoice.number}</p>
+              <p className="label-caps mt-1">issued {invoice.issue_date}</p>
+              <p className="label-caps">due {invoice.due_date}</p>
+              <div className="mt-3">
+                <StampBadge status={status} size="md" />
+              </div>
+            </div>
+          </header>
 
-        <section className="grid gap-6 py-6 sm:grid-cols-2">
-          <div>
-            <p className="label-caps">Billed to</p>
-            <p className="mt-1 font-serif text-xl">{invoice.client_name}</p>
-            <p className="text-sm whitespace-pre-line text-muted-foreground">
-              {invoice.client_address}
-              {invoice.client_email ? `\n${invoice.client_email}` : ""}
-              {invoice.client_phone ? `\n${invoice.client_phone}` : ""}
-            </p>
-          </div>
-          {profile?.bank_details && (
+          <section className="grid gap-6 py-4 sm:grid-cols-2 text-xs">
             <div>
-              <p className="label-caps">Payment details</p>
-              <p className="mt-1 text-sm whitespace-pre-line">{profile.bank_details}</p>
+              <p className="label-caps">Billed to</p>
+              <p className="mt-1 font-bold text-base text-foreground">{invoice.client_name}</p>
+              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+                {invoice.client_address}
+                {invoice.client_email ? `\n${invoice.client_email}` : ""}
+                {invoice.client_phone ? `\n${invoice.client_phone}` : ""}
+              </p>
             </div>
+            {profile?.bank_details && (
+              <div>
+                <p className="label-caps">Payment details</p>
+                <p className="mt-1 text-xs whitespace-pre-line font-mono text-muted-foreground">
+                  {profile.bank_details}
+                </p>
+              </div>
+            )}
+          </section>
+
+          <table className="w-full border-t border-border text-xs">
+            <thead>
+              <tr className="label-caps text-left">
+                <th className="py-3 font-normal">Description</th>
+                <th className="py-3 text-right font-normal">Qty</th>
+                <th className="py-3 text-right font-normal">Rate</th>
+                <th className="py-3 text-right font-normal">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {items.map((item, i) => (
+                <tr key={i}>
+                  <td className="py-3 font-medium">{item.description}</td>
+                  <td className="money py-3 text-right">{Number(item.quantity)}</td>
+                  <td className="money py-3 text-right">
+                    {formatMoney(Number(item.unit_price), invoice.currency)}
+                  </td>
+                  <td className="money py-3 text-right font-bold">
+                    {formatMoney(
+                      Number(item.quantity) * Number(item.unit_price),
+                      invoice.currency
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="mt-6 ml-auto max-w-xs space-y-2 text-xs">
+            <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal, invoice.currency)} />
+            <SummaryRow
+              label="Discount"
+              value={`− ${formatMoney(Number(invoice.discount), invoice.currency)}`}
+            />
+            <SummaryRow
+              label={`Tax (${Number(invoice.tax_rate)}%)`}
+              value={formatMoney(totals.tax, invoice.currency)}
+            />
+            <div className="flex items-baseline justify-between border-t border-border pt-3 font-bold">
+              <span className="text-sm uppercase tracking-wider text-foreground">Total due</span>
+              <span className="money text-xl text-foreground">
+                {formatMoney(totals.total, invoice.currency)}
+              </span>
+            </div>
+          </div>
+
+          {/* Signature & Notes Section */}
+          <div className="border-t border-border pt-4 space-y-4 text-xs">
+            {profile?.signature_url && (
+              <div className="space-y-1">
+                <p className="label-caps">Authorized Signature</p>
+                <img
+                  src={profile.signature_url}
+                  alt="Signature"
+                  className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40"
+                />
+              </div>
+            )}
+
+            {invoice.notes && (
+              <div className="space-y-1">
+                <p className="label-caps">Terms & Conditions</p>
+                <p className="text-muted-foreground whitespace-pre-line">{invoice.notes}</p>
+              </div>
+            )}
+          </div>
+        </article>
+
+        <section className="no-print ledger-panel overflow-hidden">
+          <div className="border-b border-border px-5 py-3">
+            <p className="label-caps">Reminder history</p>
+          </div>
+          {reminders.length === 0 ? (
+            <p className="px-5 py-8 text-center text-xs text-muted-foreground">
+              Nothing sent yet. Duely checks unpaid invoices every 3 days.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {reminders.map((r) => (
+                <li key={r.id} className="space-y-2 px-5 py-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="label-caps">{new Date(r.sent_at).toLocaleString()}</span>
+                    <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
+                      {r.channel}
+                    </span>
+                    <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
+                      {r.tone}
+                    </span>
+                    <span
+                      className={
+                        r.status === "sent"
+                          ? "text-[0.7rem] font-semibold text-stamp-paid uppercase"
+                          : "text-[0.7rem] font-semibold text-stamp-overdue uppercase"
+                      }
+                    >
+                      {r.status}
+                    </span>
+                  </div>
+                  <p className="font-medium text-xs">{r.subject}</p>
+                  <p className="text-xs whitespace-pre-line text-muted-foreground">{r.body}</p>
+                  {r.error && <p className="text-xs text-stamp-overdue">{r.error}</p>}
+                </li>
+              ))}
+            </ul>
           )}
         </section>
-
-        <table className="w-full border-t border-border text-sm">
-          <thead>
-            <tr className="label-caps text-left">
-              <th className="py-3 font-normal">Description</th>
-              <th className="py-3 text-right font-normal">Qty</th>
-              <th className="py-3 text-right font-normal">Rate</th>
-              <th className="py-3 text-right font-normal">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {items.map((item, i) => (
-              <tr key={i}>
-                <td className="py-3">{item.description}</td>
-                <td className="money py-3 text-right">{Number(item.quantity)}</td>
-                <td className="money py-3 text-right">
-                  {formatMoney(Number(item.unit_price), invoice.currency)}
-                </td>
-                <td className="money py-3 text-right">
-                  {formatMoney(
-                    Number(item.quantity) * Number(item.unit_price),
-                    invoice.currency,
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="mt-6 ml-auto max-w-xs space-y-2 text-sm">
-          <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal, invoice.currency)} />
-          <SummaryRow
-            label="Discount"
-            value={`− ${formatMoney(Number(invoice.discount), invoice.currency)}`}
-          />
-          <SummaryRow
-            label={`Tax (${Number(invoice.tax_rate)}%)`}
-            value={formatMoney(totals.tax, invoice.currency)}
-          />
-          <div className="flex items-baseline justify-between border-t border-border pt-3">
-            <span className="font-serif text-lg">Total due</span>
-            <span className="money text-2xl">
-              {formatMoney(totals.total, invoice.currency)}
-            </span>
-          </div>
-        </div>
-
-        {invoice.notes && (
-          <p className="mt-8 border-t border-border pt-4 text-sm whitespace-pre-line text-muted-foreground">
-            {invoice.notes}
-          </p>
-        )}
-      </article>
-
-      <section className="no-print ledger-panel overflow-hidden">
-        <div className="border-b border-border px-5 py-3">
-          <p className="label-caps">Reminder history</p>
-        </div>
-        {reminders.length === 0 ? (
-          <p className="px-5 py-8 text-center text-sm text-muted-foreground">
-            Nothing sent yet. Duely checks unpaid invoices every 3 days.
-          </p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {reminders.map((r) => (
-              <li key={r.id} className="space-y-2 px-5 py-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="label-caps">{new Date(r.sent_at).toLocaleString()}</span>
-                  <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
-                    {r.channel}
-                  </span>
-                  <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
-                    {r.tone}
-                  </span>
-                  <span
-                    className={
-                      r.status === "sent"
-                        ? "text-[0.7rem] font-semibold text-stamp-paid uppercase"
-                        : "text-[0.7rem] font-semibold text-stamp-overdue uppercase"
-                    }
-                  >
-                    {r.status}
-                  </span>
-                </div>
-                <p className="font-medium">{r.subject}</p>
-                <p className="text-sm whitespace-pre-line text-muted-foreground">{r.body}</p>
-                {r.error && <p className="text-xs text-stamp-overdue">{r.error}</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+      </div>
     </AppShell>
   );
 }
@@ -249,7 +277,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
       <span className="text-muted-foreground">{label}</span>
-      <span className="money">{value}</span>
+      <span className="money font-semibold text-foreground">{value}</span>
     </div>
   );
 }
