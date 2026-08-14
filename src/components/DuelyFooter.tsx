@@ -9,8 +9,8 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
   return (
     <footer
       className={cn(
-        "pt-16 sm:pt-24 space-y-12 border-t text-left font-sans select-none",
-        isDark ? "border-white/10 text-white" : "border-slate-200 text-slate-900"
+        "pt-16 sm:pt-24 space-y-12 text-left font-sans select-none",
+        isDark ? "text-white" : "text-slate-900"
       )}
     >
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6">
@@ -139,18 +139,14 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
         </div>
       </div>
 
-      {/* Copyright Divider & Bottom Text */}
+      {/* Copyright Bottom Text (No Divider Line, No Systems Operational text) */}
       <div
         className={cn(
-          "pt-8 pb-12 border-t flex items-center justify-between text-xs font-sans max-w-6xl mx-auto px-4 sm:px-6",
-          isDark ? "border-white/10 text-neutral-500" : "border-slate-200 text-slate-500"
+          "pt-8 pb-12 text-xs font-sans max-w-6xl mx-auto px-4 sm:px-6",
+          isDark ? "text-neutral-500" : "text-slate-500"
         )}
       >
         <p>© 2026 Duely — All rights reserved.</p>
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-emerald-500" />
-          <span className="text-[11px]">Systems Operational</span>
-        </div>
       </div>
     </footer>
   );

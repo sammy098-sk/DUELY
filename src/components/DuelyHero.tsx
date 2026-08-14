@@ -215,10 +215,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
 
         {/* 6. WORKS-WHERE-YOUR-CLIENTS-ARE INTEGRATION STRIP */}
         <div
-          className={cn(
-            "animate-hero-fade pt-8 space-y-4 border-t",
-            isDark ? "border-white/10" : "border-slate-200"
-          )}
+          className="animate-hero-fade pt-10 sm:pt-14 space-y-4"
           style={{ animationDelay: "400ms" }}
         >
           <p
