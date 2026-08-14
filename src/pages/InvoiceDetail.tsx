@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import {
   computeTotals,
   effectiveStatus,
   formatMoney,
+  formatDateFormatted,
   type InvoiceRecord,
   type LineItem,
 } from "@/lib/invoice";
@@ -43,10 +44,26 @@ export default function InvoiceDetail() {
     },
   });
 
-  if (!data) return <p className="label-caps p-8">Loading invoice…</p>;
+  if (!data) {
+    return (
+      <AppShell pageTitle="Invoice Details">
+        <p className="label-caps p-8 text-center animate-pulse">Loading invoice details…</p>
+      </AppShell>
+    );
+  }
+
   const { invoice, items, reminders, profile } = data;
   const status = effectiveStatus(invoice);
   const totals = computeTotals(items, Number(invoice.tax_rate), Number(invoice.discount));
+
+  // Extract payment method or project name if stored in notes metadata
+  const notesText = invoice.notes || "";
+  const paymentMethodMatch = /\[Payment Method:\s*(.*?)\]/.exec(notesText);
+  const projectNameMatch = /\[Project:\s*(.*?)\]/.exec(notesText);
+
+  const paymentMethod = invoice.payment_method || paymentMethodMatch?.[1] || "Bank Transfer";
+  const projectName = invoice.project_name || projectNameMatch?.[1] || "Invoice Details";
+  const cleanNotes = notesText.replace(/\[(Payment Method|Project):.*?\]/g, "").trim();
 
   async function markPaid() {
     const { error } = await supabase
@@ -85,23 +102,37 @@ export default function InvoiceDetail() {
 
   return (
     <AppShell pageTitle={`Invoice ${invoice.number}`}>
-      <div className="space-y-8 p-4 lg:p-8 max-w-4xl mx-auto">
-        <div className="no-print flex flex-wrap items-center gap-3">
-          <Button onClick={chase} disabled={sending || status === "paid" || status === "draft"}>
-            <BellRing className="size-4" /> {sending ? "Drafting…" : "Send reminder now"}
-          </Button>
-          <Button variant="outline" onClick={() => window.print()}>
-            <Printer className="size-4" /> Download PDF
-          </Button>
-          {status !== "paid" && (
-            <Button variant="outline" onClick={markPaid}>
-              <CheckCircle2 className="size-4" /> Mark paid
+      <div className="space-y-6 p-4 lg:p-8 max-w-4xl mx-auto">
+        {/* Action Toolbar */}
+        <div className="no-print flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={chase}
+              disabled={sending || status === "paid" || status === "draft"}
+              className="gap-1.5 font-bold text-xs cursor-pointer"
+            >
+              <BellRing className="size-3.5" />
+              <span>{sending ? "Drafting…" : "Send reminder now"}</span>
             </Button>
-          )}
+            {status !== "paid" && (
+              <Button variant="outline" size="sm" onClick={markPaid} className="gap-1.5 font-bold text-xs cursor-pointer">
+                <CheckCircle2 className="size-3.5 text-emerald-500" />
+                <span>Mark as Paid</span>
+              </Button>
+            )}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 font-bold text-xs cursor-pointer">
+            <Printer className="size-3.5" />
+            <span>Download PDF</span>
+          </Button>
         </div>
 
-        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-6">
-          <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">
+        {/* Printable Document Surface */}
+        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-8 relative overflow-hidden">
+          
+          {/* 1. HEADER (Logo/Name on Left | Invoice Number on Right) */}
+          <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
             <div className="flex items-center gap-3">
               {profile?.company_logo_url ? (
                 <img
@@ -109,99 +140,152 @@ export default function InvoiceDetail() {
                   alt="Company Logo"
                   className="h-12 w-auto max-w-[140px] object-contain rounded border border-border/40 shrink-0"
                 />
-              ) : null}
+              ) : (
+                <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight shrink-0">
+                  {(profile?.business_name || profile?.company_name || "D").charAt(0).toUpperCase()}
+                </div>
+              )}
               <div>
-                <h1 className="text-3xl font-extrabold text-foreground">
+                <h1 className="text-xl font-extrabold text-foreground uppercase tracking-tight">
                   {profile?.business_name || profile?.company_name || "Invoice"}
                 </h1>
-                <p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
-                  {profile?.address}
-                  {profile?.contact_email ? `\n${profile.contact_email}` : ""}
-                  {profile?.phone ? `\n${profile.phone}` : ""}
-                </p>
+                <p className="text-xs text-muted-foreground">{profile?.contact_email}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="money text-sm font-bold text-foreground">{invoice.number}</p>
-              <p className="label-caps mt-1">issued {invoice.issue_date}</p>
-              <p className="label-caps">due {invoice.due_date}</p>
-              <div className="mt-3">
-                <StampBadge status={status} size="md" />
+
+            <div className="text-right flex flex-col items-end gap-2">
+              <div className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1 border border-border">
+                <span className="text-[10px] font-bold text-muted-foreground label-caps">NO.</span>
+                <span className="font-mono text-sm font-extrabold text-foreground">
+                  {invoice.number.startsWith("#") ? invoice.number : `#${invoice.number.replace(/^INV-/, "")}`}
+                </span>
               </div>
+              <StampBadge status={status} size="sm" />
             </div>
           </header>
 
-          <section className="grid gap-6 py-4 sm:grid-cols-2 text-xs">
+          {/* 2. META ROW (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-6 text-xs">
+            <div className="space-y-1">
+              <span className="label-caps font-bold">INVOICE TO</span>
+              <p className="font-extrabold text-sm text-foreground">{invoice.client_name}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="label-caps font-bold">DATE</span>
+              <p className="font-mono font-bold text-foreground pt-0.5">
+                {formatDateFormatted(invoice.issue_date)}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <span className="label-caps font-bold">PROJECT NAME</span>
+              <p className="font-bold text-xs text-foreground pt-0.5">{projectName}</p>
+            </div>
+          </div>
+
+          {/* 3. BILLED TO / FROM */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs leading-relaxed">
             <div>
-              <p className="label-caps">Billed to</p>
-              <p className="mt-1 font-bold text-base text-foreground">{invoice.client_name}</p>
-              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+              <p className="label-caps font-bold">Billed To</p>
+              <p className="font-bold text-sm text-foreground">{invoice.client_name}</p>
+              <p className="text-muted-foreground whitespace-pre-line">
                 {invoice.client_address}
                 {invoice.client_email ? `\n${invoice.client_email}` : ""}
                 {invoice.client_phone ? `\n${invoice.client_phone}` : ""}
               </p>
             </div>
-            {profile?.bank_details && (
-              <div>
-                <p className="label-caps">Payment details</p>
-                <p className="mt-1 text-xs whitespace-pre-line font-mono text-muted-foreground">
-                  {profile.bank_details}
-                </p>
-              </div>
-            )}
-          </section>
+            <div className="text-left sm:text-right">
+              <p className="label-caps font-bold">From</p>
+              <p className="font-bold text-sm text-foreground">
+                {profile?.business_name || profile?.company_name || "Duely Studio"}
+              </p>
+              <p className="text-muted-foreground">{profile?.contact_email}</p>
+              <p className="text-muted-foreground whitespace-pre-line">{profile?.address}</p>
+            </div>
+          </div>
 
-          <table className="w-full border-t border-border text-xs">
-            <thead>
-              <tr className="label-caps text-left">
-                <th className="py-3 font-normal">Description</th>
-                <th className="py-3 text-right font-normal">Qty</th>
-                <th className="py-3 text-right font-normal">Rate</th>
-                <th className="py-3 text-right font-normal">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {items.map((item, i) => (
-                <tr key={i}>
-                  <td className="py-3 font-medium">{item.description}</td>
-                  <td className="money py-3 text-right">{Number(item.quantity)}</td>
-                  <td className="money py-3 text-right">
-                    {formatMoney(Number(item.unit_price), invoice.currency)}
-                  </td>
-                  <td className="money py-3 text-right font-bold">
-                    {formatMoney(
-                      Number(item.quantity) * Number(item.unit_price),
-                      invoice.currency
-                    )}
-                  </td>
+          {/* 4. LINE ITEMS TABLE (Wrapping descriptions inside Item column, no truncation) */}
+          <div className="space-y-3">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-border label-caps text-left">
+                  <th className="py-2.5 font-bold">Item</th>
+                  <th className="py-2.5 text-right font-bold w-24">Price</th>
+                  <th className="py-2.5 text-right font-bold w-16">Qty</th>
+                  <th className="py-2.5 text-right font-bold w-28">Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {items.map((item, i) => (
+                  <tr key={i} className="align-top">
+                    {/* Item Description Column — WRAPPING, NO TRUNCATION */}
+                    <td className="py-3 pr-3 text-left font-medium text-foreground whitespace-normal overflow-wrap-anywhere break-words leading-relaxed">
+                      {item.description}
+                    </td>
+                    <td className="py-3 px-1 text-right font-mono font-medium">
+                      {formatMoney(Number(item.unit_price), invoice.currency)}
+                    </td>
+                    <td className="py-3 px-1 text-right font-mono font-medium">
+                      {Number(item.quantity)}
+                    </td>
+                    <td className="py-3 pl-2 text-right font-mono font-bold text-foreground">
+                      {formatMoney(Number(item.quantity) * Number(item.unit_price), invoice.currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="mt-6 ml-auto max-w-xs space-y-2 text-xs">
-            <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal, invoice.currency)} />
-            <SummaryRow
-              label="Discount"
-              value={`− ${formatMoney(Number(invoice.discount), invoice.currency)}`}
-            />
-            <SummaryRow
-              label={`Tax (${Number(invoice.tax_rate)}%)`}
-              value={formatMoney(totals.tax, invoice.currency)}
-            />
-            <div className="flex items-baseline justify-between border-t border-border pt-3 font-bold">
-              <span className="text-sm uppercase tracking-wider text-foreground">Total due</span>
-              <span className="money text-xl text-foreground">
+          {/* 5. PAYMENT METHOD, BANK DETAILS & REPOSITIONED INVOICE TOTAL */}
+          <div className="space-y-6 pt-4 border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start text-xs">
+              <div className="sm:col-span-7 space-y-2">
+                <p className="label-caps font-bold">Payment Method</p>
+                <p className="font-semibold text-foreground">{paymentMethod}</p>
+
+                {profile?.bank_details && (
+                  <div className="pt-2">
+                    <p className="label-caps font-bold">Bank Details</p>
+                    <p className="mt-1 text-xs font-mono text-muted-foreground whitespace-pre-line leading-relaxed">
+                      {profile.bank_details}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="sm:col-span-5 space-y-2 text-right">
+                <SummaryRow label="Subtotal" value={formatMoney(totals.subtotal, invoice.currency)} />
+                {Number(invoice.discount) > 0 && (
+                  <SummaryRow
+                    label="Discount"
+                    value={`− ${formatMoney(Number(invoice.discount), invoice.currency)}`}
+                  />
+                )}
+                {Number(invoice.tax_rate) > 0 && (
+                  <SummaryRow
+                    label={`Tax (${Number(invoice.tax_rate)}%)`}
+                    value={formatMoney(totals.tax, invoice.currency)}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* REPOSITIONED INVOICE TOTAL */}
+            <div className="border-t border-b border-border py-3.5 flex justify-between items-baseline font-bold bg-muted/20 px-4 rounded-xl">
+              <span className="text-sm text-foreground uppercase tracking-wider font-extrabold">
+                Invoice Total
+              </span>
+              <span className="font-mono text-2xl font-extrabold text-foreground">
                 {formatMoney(totals.total, invoice.currency)}
               </span>
             </div>
           </div>
 
-          {/* Signature & Notes Section */}
+          {/* 6. SIGNATURE & PAYMENT DUE BY INSTRUCTIONS */}
           <div className="border-t border-border pt-4 space-y-4 text-xs">
             {profile?.signature_url && (
               <div className="space-y-1">
-                <p className="label-caps">Authorized Signature</p>
+                <p className="label-caps font-bold">Authorized Signature</p>
                 <img
                   src={profile.signature_url}
                   alt="Signature"
@@ -210,18 +294,24 @@ export default function InvoiceDetail() {
               </div>
             )}
 
-            {invoice.notes && (
-              <div className="space-y-1">
-                <p className="label-caps">Terms & Conditions</p>
-                <p className="text-muted-foreground whitespace-pre-line">{invoice.notes}</p>
-              </div>
-            )}
+            <div className="space-y-1.5">
+              <p className="font-semibold text-foreground">
+                Payment due by <span className="font-mono font-bold">{formatDateFormatted(invoice.due_date)}</span>
+              </p>
+              <p className="text-muted-foreground font-medium">
+                Please reference the invoice number (<span className="font-mono font-bold text-foreground">{invoice.number}</span>) when making payment.
+              </p>
+              {cleanNotes && (
+                <p className="text-muted-foreground whitespace-pre-line pt-1">{cleanNotes}</p>
+              )}
+            </div>
           </div>
         </article>
 
+        {/* Reminder History Log */}
         <section className="no-print ledger-panel overflow-hidden">
           <div className="border-b border-border px-5 py-3">
-            <p className="label-caps">Reminder history</p>
+            <p className="label-caps font-bold">Reminder history</p>
           </div>
           {reminders.length === 0 ? (
             <p className="px-5 py-8 text-center text-xs text-muted-foreground">
@@ -277,7 +367,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
       <span className="text-muted-foreground">{label}</span>
-      <span className="money font-semibold text-foreground">{value}</span>
+      <span className="font-mono font-semibold text-foreground">{value}</span>
     </div>
   );
 }

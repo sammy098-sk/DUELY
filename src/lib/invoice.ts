@@ -28,6 +28,8 @@ export interface InvoiceRecord {
   last_reminder_at: string | null;
   reminder_count: number;
   created_at: string;
+  payment_method?: string;
+  project_name?: string;
 }
 
 export function computeTotals(items: LineItem[], taxRate: number, discount: number) {
@@ -48,15 +50,42 @@ function round2(n: number) {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
-export function formatMoney(amount: number, currency = "USD") {
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  NGN: "₦",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  CAD: "CA$",
+  AUD: "A$",
+  INR: "₹",
+};
+
+export function getCurrencySymbol(currency = "USD"): string {
+  const code = (currency || "USD").toUpperCase();
+  return CURRENCY_SYMBOLS[code] || `${code} `;
+}
+
+export function formatMoney(amount: number, currency = "USD"): string {
+  const num = Number(amount) || 0;
+  const symbol = getCurrencySymbol(currency);
+  const formatted = num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${symbol}${formatted}`;
+}
+
+export function formatDateFormatted(dateStr: string): string {
+  if (!dateStr) return "";
   try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2,
-    }).format(Number(amount) || 0);
+    const d = new Date(`${dateStr}T00:00:00Z`);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   } catch {
-    return `${currency} ${(Number(amount) || 0).toFixed(2)}`;
+    return dateStr;
   }
 }
 
@@ -83,12 +112,11 @@ export function toneForInvoice(dueDate: string): "friendly" | "firm" | "final" {
   return "final";
 }
 
-export function nextInvoiceNumber(existing: string[]) {
-  const year = new Date().getFullYear();
+export function nextInvoiceNumber(existing: string[]): string {
   const nums = existing
     .map((n) => /(\d+)\s*$/.exec(n)?.[1])
     .filter(Boolean)
     .map((n) => parseInt(n as string, 10));
   const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `INV-${year}-${String(next).padStart(3, "0")}`;
+  return `#${String(next).padStart(4, "0")}`;
 }
