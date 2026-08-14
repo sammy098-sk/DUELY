@@ -21,6 +21,12 @@ import ComingSoonPage from "./pages/ComingSoon";
 import LandingPage from "./pages/Landing";
 import WelcomePage from "./pages/Welcome";
 
+// 4 New Public Unauthenticated Pages
+import AboutPage from "./pages/About";
+import ContactPage from "./pages/Contact";
+import TermsPage from "./pages/Terms";
+import PrivacyPage from "./pages/Privacy";
+
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -51,6 +57,12 @@ export function App() {
           <Routes>
             {/* Public Landing Page at / */}
             <Route path="/" element={<LandingPage />} />
+
+            {/* Public Unauthenticated Routes */}
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
             <Route path="/auth" element={<AuthPage />} />
             
