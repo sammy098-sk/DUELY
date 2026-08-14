@@ -100,9 +100,13 @@ export default function InvoiceDetail() {
     }
   }
 
+  const displayNum = invoice.number.startsWith("#")
+    ? invoice.number
+    : `#${invoice.number.replace(/^INV-/, "")}`;
+
   return (
-    <AppShell pageTitle={`Invoice ${invoice.number}`}>
-      <div className="space-y-6 p-4 lg:p-8 max-w-4xl mx-auto">
+    <AppShell pageTitle={`Invoice ${displayNum}`}>
+      <div className="space-y-6 p-4 lg:p-8 max-w-4xl mx-auto font-sans">
         {/* Action Toolbar */}
         <div className="no-print flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -110,28 +114,28 @@ export default function InvoiceDetail() {
               size="sm"
               onClick={chase}
               disabled={sending || status === "paid" || status === "draft"}
-              className="gap-1.5 font-bold text-xs cursor-pointer"
+              className="gap-1.5 font-bold text-xs cursor-pointer font-sans"
             >
               <BellRing className="size-3.5" />
               <span>{sending ? "Drafting…" : "Send reminder now"}</span>
             </Button>
             {status !== "paid" && (
-              <Button variant="outline" size="sm" onClick={markPaid} className="gap-1.5 font-bold text-xs cursor-pointer">
+              <Button variant="outline" size="sm" onClick={markPaid} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
                 <CheckCircle2 className="size-3.5 text-emerald-500" />
                 <span>Mark as Paid</span>
               </Button>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 font-bold text-xs cursor-pointer">
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
             <Printer className="size-3.5" />
             <span>Download PDF</span>
           </Button>
         </div>
 
         {/* Printable Document Surface */}
-        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-8 relative overflow-hidden">
+        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-8 relative">
           
-          {/* 1. HEADER (Logo/Name on Left | Invoice Number on Right) */}
+          {/* 1. HEADER (Logo & Name on Left | Plain Static NO. #0001 & Stamp Badge on Right) */}
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
             <div className="flex items-center gap-3">
               {profile?.company_logo_url ? (
@@ -141,24 +145,23 @@ export default function InvoiceDetail() {
                   className="h-12 w-auto max-w-[140px] object-contain rounded border border-border/40 shrink-0"
                 />
               ) : (
-                <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight shrink-0">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight shrink-0 font-sans">
                   {(profile?.business_name || profile?.company_name || "D").charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
-                <h1 className="text-xl font-extrabold text-foreground uppercase tracking-tight">
+                <h1 className="text-xl font-extrabold text-foreground uppercase tracking-tight font-serif">
                   {profile?.business_name || profile?.company_name || "Invoice"}
                 </h1>
-                <p className="text-xs text-muted-foreground">{profile?.contact_email}</p>
+                <p className="text-xs text-muted-foreground font-sans">{profile?.contact_email}</p>
               </div>
             </div>
 
             <div className="text-right flex flex-col items-end gap-2">
-              <div className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1 border border-border">
-                <span className="text-[10px] font-bold text-muted-foreground label-caps">NO.</span>
-                <span className="font-mono text-sm font-extrabold text-foreground">
-                  {invoice.number.startsWith("#") ? invoice.number : `#${invoice.number.replace(/^INV-/, "")}`}
-                </span>
+              {/* PLAIN STATIC INVOICE NUMBER */}
+              <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
+                <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
+                <span>{displayNum}</span>
               </div>
               <StampBadge status={status} size="sm" />
             </div>
@@ -166,7 +169,7 @@ export default function InvoiceDetail() {
 
           {/* 2. META ROW (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-6 text-xs">
-            <div className="space-y-1">
+            <div className="space-y-1 font-sans">
               <span className="label-caps font-bold">INVOICE TO</span>
               <p className="font-extrabold text-sm text-foreground">{invoice.client_name}</p>
             </div>
@@ -176,14 +179,14 @@ export default function InvoiceDetail() {
                 {formatDateFormatted(invoice.issue_date)}
               </p>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 font-sans">
               <span className="label-caps font-bold">PROJECT NAME</span>
               <p className="font-bold text-xs text-foreground pt-0.5">{projectName}</p>
             </div>
           </div>
 
           {/* 3. BILLED TO / FROM */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs leading-relaxed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs leading-relaxed font-sans">
             <div>
               <p className="label-caps font-bold">Billed To</p>
               <p className="font-bold text-sm text-foreground">{invoice.client_name}</p>
@@ -203,7 +206,7 @@ export default function InvoiceDetail() {
             </div>
           </div>
 
-          {/* 4. LINE ITEMS TABLE (Wrapping descriptions inside Item column, no truncation) */}
+          {/* 4. LINE ITEMS TABLE (NO INTERNAL SCROLLBAR, UNCLIPPED HEIGHT) */}
           <div className="space-y-3">
             <table className="w-full text-xs border-collapse">
               <thead>
@@ -218,7 +221,7 @@ export default function InvoiceDetail() {
                 {items.map((item, i) => (
                   <tr key={i} className="align-top">
                     {/* Item Description Column — WRAPPING, NO TRUNCATION */}
-                    <td className="py-3 pr-3 text-left font-medium text-foreground whitespace-normal overflow-wrap-anywhere break-words leading-relaxed">
+                    <td className="py-3 pr-3 text-left font-medium text-foreground whitespace-normal overflow-wrap-anywhere break-words leading-relaxed font-sans">
                       {item.description}
                     </td>
                     <td className="py-3 px-1 text-right font-mono font-medium">
@@ -238,7 +241,7 @@ export default function InvoiceDetail() {
 
           {/* 5. PAYMENT METHOD, BANK DETAILS & REPOSITIONED INVOICE TOTAL */}
           <div className="space-y-6 pt-4 border-t border-border">
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start text-xs font-sans">
               <div className="sm:col-span-7 space-y-2">
                 <p className="label-caps font-bold">Payment Method</p>
                 <p className="font-semibold text-foreground">{paymentMethod}</p>
@@ -272,7 +275,7 @@ export default function InvoiceDetail() {
 
             {/* REPOSITIONED INVOICE TOTAL */}
             <div className="border-t border-b border-border py-3.5 flex justify-between items-baseline font-bold bg-muted/20 px-4 rounded-xl">
-              <span className="text-sm text-foreground uppercase tracking-wider font-extrabold">
+              <span className="text-sm text-foreground uppercase tracking-wider font-extrabold font-sans">
                 Invoice Total
               </span>
               <span className="font-mono text-2xl font-extrabold text-foreground">
@@ -282,7 +285,7 @@ export default function InvoiceDetail() {
           </div>
 
           {/* 6. SIGNATURE & PAYMENT DUE BY INSTRUCTIONS */}
-          <div className="border-t border-border pt-4 space-y-4 text-xs">
+          <div className="border-t border-border pt-4 space-y-4 text-xs font-sans">
             {profile?.signature_url && (
               <div className="space-y-1">
                 <p className="label-caps font-bold">Authorized Signature</p>
@@ -299,7 +302,7 @@ export default function InvoiceDetail() {
                 Payment due by <span className="font-mono font-bold">{formatDateFormatted(invoice.due_date)}</span>
               </p>
               <p className="text-muted-foreground font-medium">
-                Please reference the invoice number (<span className="font-mono font-bold text-foreground">{invoice.number}</span>) when making payment.
+                Please reference the invoice number (<span className="font-mono font-bold text-foreground">{displayNum}</span>) when making payment.
               </p>
               {cleanNotes && (
                 <p className="text-muted-foreground whitespace-pre-line pt-1">{cleanNotes}</p>
@@ -323,25 +326,25 @@ export default function InvoiceDetail() {
                 <li key={r.id} className="space-y-2 px-5 py-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="label-caps">{new Date(r.sent_at).toLocaleString()}</span>
-                    <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
+                    <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase font-sans">
                       {r.channel}
                     </span>
-                    <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase">
+                    <span className="rounded-sm border border-border px-2 py-0.5 text-[0.7rem] font-semibold uppercase font-sans">
                       {r.tone}
                     </span>
                     <span
                       className={
                         r.status === "sent"
-                          ? "text-[0.7rem] font-semibold text-stamp-paid uppercase"
-                          : "text-[0.7rem] font-semibold text-stamp-overdue uppercase"
+                          ? "text-[0.7rem] font-semibold text-stamp-paid uppercase font-sans"
+                          : "text-[0.7rem] font-semibold text-stamp-overdue uppercase font-sans"
                       }
                     >
                       {r.status}
                     </span>
                   </div>
-                  <p className="font-medium text-xs">{r.subject}</p>
-                  <p className="text-xs whitespace-pre-line text-muted-foreground">{r.body}</p>
-                  {r.error && <p className="text-xs text-stamp-overdue">{r.error}</p>}
+                  <p className="font-medium text-xs font-sans">{r.subject}</p>
+                  <p className="text-xs whitespace-pre-line text-muted-foreground font-sans">{r.body}</p>
+                  {r.error && <p className="text-xs text-stamp-overdue font-sans">{r.error}</p>}
                 </li>
               ))}
             </ul>
@@ -365,7 +368,7 @@ interface ReminderRow {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4">
+    <div className="flex items-baseline justify-between gap-4 font-sans">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-mono font-semibold text-foreground">{value}</span>
     </div>

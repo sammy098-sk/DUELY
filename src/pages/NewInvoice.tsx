@@ -11,9 +11,6 @@ import {
   Loader2,
   Check,
   ChevronDown,
-  Building2,
-  CheckCircle2,
-  Clock,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
@@ -198,7 +195,6 @@ export default function NewInvoice() {
     setBusy(true);
 
     try {
-      // Package metadata terms & payment method into notes payload for integrity
       const payloadNotes = `${notes}\n\n[Payment Method: ${paymentMethod}]\n[Project: ${projectName}]`;
 
       const { data: invoice, error } = await supabase
@@ -267,7 +263,6 @@ export default function NewInvoice() {
   // Header CTA buttons passed into AppShell header Actions slot
   const headerActions = (
     <div className="flex items-center gap-2.5">
-      {/* Save / Download Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -291,7 +286,6 @@ export default function NewInvoice() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Primary Action CTA: Send Invoice */}
       <Button
         onClick={() => saveInvoice(isPaid ? "paid" : "awaiting")}
         disabled={busy}
@@ -310,7 +304,7 @@ export default function NewInvoice() {
 
   return (
     <AppShell pageTitle="New Invoice" headerActions={headerActions}>
-      <div className="flex-1 p-4 lg:p-6 bg-background">
+      <div className="flex-1 p-4 lg:p-6 bg-background font-sans">
         <div className="mx-auto max-w-7xl">
           {/* TWO COLUMN DESKTOP WORKSPACE LAYOUT (40% Left / 60% Right) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -318,13 +312,11 @@ export default function NewInvoice() {
             {/* ── LEFT COLUMN: AI INVOICE GENERATOR (Col 5 / ~40%) ────────── */}
             <div className="lg:col-span-5 space-y-4 no-print">
               <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-paper space-y-4">
-                
-                {/* Heading & Subtitle */}
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight text-foreground">
+                  <h1 className="text-xl font-bold tracking-tight text-foreground font-sans">
                     AI Invoice Generator
                   </h1>
-                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed font-sans">
                     Create an invoice from a file or simply describe what you need.
                   </p>
                 </div>
@@ -366,7 +358,6 @@ export default function NewInvoice() {
                       className="resize-none font-sans text-xs leading-relaxed border-border/80 focus:border-foreground/40 bg-background/50 placeholder:text-muted-foreground/50 rounded-xl"
                     />
 
-                    {/* Real-time Dynamic Word Counter */}
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                       <span className="font-mono">
                         {wordCount} / 4,000 words
@@ -378,7 +369,6 @@ export default function NewInvoice() {
                       )}
                     </div>
 
-                    {/* Generate Button */}
                     <Button
                       onClick={handleGeneratePrompt}
                       disabled={genStatus === "generating" || !prompt.trim()}
@@ -415,11 +405,11 @@ export default function NewInvoice() {
             <div className="lg:col-span-7 space-y-4">
               
               {/* Document Container Surface */}
-              <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-8 print-sheet relative overflow-hidden">
+              <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-8 print-sheet relative">
                 
-                {/* 1. INVOICE HEADER (Logo & Business Name on Left | Unique Sequential # on Right) */}
+                {/* 1. INVOICE HEADER (Logo & Name on Left | Plain Static NO. #0001 & Minimal Paid Toggle on Right) */}
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-6">
-                  {/* Left: Business Logo & Business Name (Loaded from Profile Branding) */}
+                  {/* Left: Business Logo & Business Name */}
                   <div className="flex items-center gap-3">
                     {sender.companyLogoUrl ? (
                       <img
@@ -428,54 +418,48 @@ export default function NewInvoice() {
                         className="h-12 w-auto max-w-[140px] object-contain rounded border border-border/40 shrink-0"
                       />
                     ) : (
-                      <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight shrink-0">
+                      <div className="flex size-11 items-center justify-center rounded-xl bg-foreground text-background font-extrabold text-sm shadow-xs tracking-tight shrink-0 font-sans">
                         {sender.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div>
-                      <h2 className="text-xl font-extrabold tracking-tight text-foreground uppercase">
+                      <h2 className="text-xl font-extrabold tracking-tight text-foreground uppercase font-serif">
                         {sender.name}
                       </h2>
-                      <p className="text-xs font-semibold text-muted-foreground">{sender.email}</p>
+                      <p className="text-xs font-medium text-muted-foreground font-sans">{sender.email}</p>
                     </div>
                   </div>
 
-                  {/* Right: Unique Sequential Invoice Number */}
-                  <div className="text-right flex flex-col items-end gap-1.5">
-                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-muted/70 px-3 py-1.5 border border-border/80">
-                      <span className="text-[10px] font-bold text-muted-foreground label-caps">NO.</span>
-                      <Input
-                        type="text"
-                        value={number}
-                        onChange={(e) => setNumber(e.target.value)}
-                        className="font-mono text-sm font-extrabold text-foreground bg-transparent border-0 p-0 h-auto shadow-none focus-visible:ring-0 w-24 text-right"
-                      />
+                  {/* Right: STATIC INVOICE NUMBER & MINIMAL DOCUMENT TOGGLE */}
+                  <div className="text-right flex flex-col items-end gap-2">
+                    {/* PLAIN STATIC INVOICE NUMBER (No input, no pill wrapper) */}
+                    <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
+                      <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
+                      <span>{number}</span>
                     </div>
-                    {/* Paid / Not Paid Status Control */}
-                    <div className="flex items-center gap-2 pt-1 no-print">
-                      <button
-                        type="button"
-                        onClick={() => setIsPaid(!isPaid)}
+
+                    {/* MINIMAL DOCUMENT PAID/NOT PAID TOGGLE (Document-style control, non-button badge) */}
+                    <button
+                      type="button"
+                      onClick={() => setIsPaid(!isPaid)}
+                      className="inline-flex items-center gap-2 text-xs font-semibold transition-colors cursor-pointer select-none no-print"
+                      title="Click to toggle Paid status"
+                    >
+                      <span
                         className={cn(
-                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer border",
+                          "flex size-4 items-center justify-center rounded-full border transition-all",
                           isPaid
-                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                            : "bg-muted text-muted-foreground border-border/80"
+                            ? "border-emerald-500 bg-emerald-500 text-neutral-950"
+                            : "border-border/80 bg-transparent text-transparent"
                         )}
                       >
-                        {isPaid ? (
-                          <>
-                            <CheckCircle2 className="size-3 text-emerald-500" />
-                            <span>Paid</span>
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="size-3 text-amber-500" />
-                            <span>Not Paid</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
+                        {isPaid && <Check className="size-3 stroke-[3]" />}
+                      </span>
+                      <span className={isPaid ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-muted-foreground font-medium"}>
+                        {isPaid ? "Paid" : "Not Paid"}
+                      </span>
+                    </button>
+
                     {/* Printed Stamp Badge */}
                     <div className="hidden print:block pt-1">
                       <StampBadge status={isPaid ? "paid" : "awaiting"} size="sm" />
@@ -492,7 +476,7 @@ export default function NewInvoice() {
                       value={client.name}
                       onChange={(e) => setClient({ ...client, name: e.target.value })}
                       placeholder="Client Name"
-                      className="h-8 font-extrabold text-sm border-0 border-b border-border/60 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 focus:border-emerald-500"
+                      className="h-8 font-extrabold text-sm border-0 border-b border-border/60 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 focus:border-emerald-500 font-sans"
                     />
                   </div>
 
@@ -511,13 +495,13 @@ export default function NewInvoice() {
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
                       placeholder="Website Redesign"
-                      className="h-8 font-bold text-xs border-0 border-b border-border/60 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 focus:border-emerald-500"
+                      className="h-8 font-bold text-xs border-0 border-b border-border/60 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 focus:border-emerald-500 font-sans"
                     />
                   </div>
                 </div>
 
-                {/* 3. BILLED TO / FROM (Preserved structure) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs leading-relaxed">
+                {/* 3. BILLED TO / FROM */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs leading-relaxed font-sans">
                   {/* Client Details */}
                   <div className="space-y-1">
                     <p className="label-caps font-bold">Billed To</p>
@@ -526,23 +510,23 @@ export default function NewInvoice() {
                       value={client.address}
                       onChange={(e) => setClient({ ...client, address: e.target.value })}
                       placeholder="Client Address"
-                      className="h-7 text-xs border-0 border-b border-border/40 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0"
+                      className="h-7 text-xs border-0 border-b border-border/40 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 font-sans"
                     />
                     <Input
                       value={client.email}
                       onChange={(e) => setClient({ ...client, email: e.target.value })}
                       placeholder="Client Email"
-                      className="h-7 text-xs border-0 border-b border-border/40 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0"
+                      className="h-7 text-xs border-0 border-b border-border/40 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 font-sans"
                     />
                     <Input
                       value={client.phone}
                       onChange={(e) => setClient({ ...client, phone: e.target.value })}
                       placeholder="Client Phone"
-                      className="h-7 text-xs border-0 border-b border-border/40 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0"
+                      className="h-7 text-xs border-0 border-b border-border/40 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 font-sans"
                     />
                   </div>
 
-                  {/* Sender Details (Read-only from Profile) */}
+                  {/* Sender Details */}
                   <div className="space-y-1 text-left sm:text-right">
                     <p className="label-caps font-bold">From</p>
                     <p className="font-bold text-foreground text-sm">{sender.name}</p>
@@ -552,83 +536,81 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 4. LINE ITEMS TABLE (Wrapping descriptions inside Item column, no truncation) */}
+                {/* 4. LINE ITEMS TABLE (NO INTERNAL SCROLLBAR, NATURAL UNCLIPPED HEIGHT) */}
                 <div className="space-y-4 pt-2">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-border/80 label-caps text-left">
-                          <th className="py-2.5 font-bold">Item</th>
-                          <th className="py-2.5 text-right font-bold w-24">Price</th>
-                          <th className="py-2.5 text-right font-bold w-16">Qty</th>
-                          <th className="py-2.5 text-right font-bold w-28">Total</th>
-                          <th className="py-2.5 w-8 no-print"></th>
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-border/80 label-caps text-left">
+                        <th className="py-2.5 font-bold">Item</th>
+                        <th className="py-2.5 text-right font-bold w-24">Price</th>
+                        <th className="py-2.5 text-right font-bold w-16">Qty</th>
+                        <th className="py-2.5 text-right font-bold w-28">Total</th>
+                        <th className="py-2.5 w-8 no-print"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {items.map((item, idx) => (
+                        <tr key={idx} className="group align-top">
+                          {/* Item Description Column — WRAPPING, NO TRUNCATION */}
+                          <td className="py-3 pr-3 text-left">
+                            <Textarea
+                              rows={2}
+                              value={item.description}
+                              onChange={(e) => updateItem(idx, { description: e.target.value })}
+                              placeholder="Description of service..."
+                              className="w-full text-xs font-medium border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0 focus:border-emerald-500 resize-none whitespace-normal overflow-wrap-anywhere break-words leading-relaxed font-sans"
+                            />
+                          </td>
+                          {/* Price Column */}
+                          <td className="py-3 px-1 text-right">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.unit_price}
+                              onChange={(e) => updateItem(idx, { unit_price: Number(e.target.value) })}
+                              className="h-8 text-xs font-mono font-medium text-right border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0"
+                            />
+                          </td>
+                          {/* Qty Column */}
+                          <td className="py-3 px-1 text-right">
+                            <Input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
+                              className="h-8 text-xs font-mono font-medium text-right border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0"
+                            />
+                          </td>
+                          {/* Line Total Column */}
+                          <td className="py-3 pl-2 text-right font-mono font-bold text-foreground whitespace-nowrap pt-3">
+                            {formatMoney(Number(item.quantity) * Number(item.unit_price), currency)}
+                          </td>
+                          {/* Delete Line Action */}
+                          <td className="py-3 text-right no-print pt-2.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeItem(idx)}
+                              disabled={items.length <= 1}
+                              className="size-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/50">
-                        {items.map((item, idx) => (
-                          <tr key={idx} className="group align-top">
-                            {/* Item Description Column — WRAPPING, NO TRUNCATION */}
-                            <td className="py-3 pr-3 text-left">
-                              <Textarea
-                                rows={2}
-                                value={item.description}
-                                onChange={(e) => updateItem(idx, { description: e.target.value })}
-                                placeholder="Description of service..."
-                                className="w-full text-xs font-medium border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0 focus:border-emerald-500 resize-none whitespace-normal overflow-wrap-anywhere break-words leading-relaxed"
-                              />
-                            </td>
-                            {/* Price Column */}
-                            <td className="py-3 px-1 text-right">
-                              <Input
-                                type="number"
-                                step="0.01"
-                                value={item.unit_price}
-                                onChange={(e) => updateItem(idx, { unit_price: Number(e.target.value) })}
-                                className="h-8 text-xs font-mono font-medium text-right border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0"
-                              />
-                            </td>
-                            {/* Qty Column */}
-                            <td className="py-3 px-1 text-right">
-                              <Input
-                                type="number"
-                                min="1"
-                                value={item.quantity}
-                                onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
-                                className="h-8 text-xs font-mono font-medium text-right border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0"
-                              />
-                            </td>
-                            {/* Line Total Column */}
-                            <td className="py-3 pl-2 text-right font-mono font-bold text-foreground whitespace-nowrap pt-3">
-                              {formatMoney(Number(item.quantity) * Number(item.unit_price), currency)}
-                            </td>
-                            {/* Delete Line Action */}
-                            <td className="py-3 text-right no-print pt-2.5">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeItem(idx)}
-                                disabled={items.length <= 1}
-                                className="size-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive cursor-pointer"
-                              >
-                                <Trash2 className="size-3.5" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
 
-                  {/* 5. + ADD ITEM BUTTON (Polished hover animation: translateY(-2px)) */}
+                  {/* + ADD ITEM BUTTON */}
                   <div className="pt-1 mb-6">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={addItem}
-                      className="h-8 text-xs font-semibold gap-1.5 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-foreground shadow-2xs hover:-translate-y-[2px] hover:shadow-md transition-all duration-150 ease-in-out cursor-pointer"
+                      className="h-8 text-xs font-semibold gap-1.5 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-foreground shadow-2xs hover:-translate-y-[2px] hover:shadow-md transition-all duration-150 ease-in-out cursor-pointer font-sans"
                     >
                       <Plus className="size-3.5" />
                       <span>Add Item</span>
@@ -636,9 +618,9 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 6. PAYMENT METHOD, READ-ONLY BANK DETAILS & REPOSITIONED INVOICE TOTAL */}
+                {/* 5. PAYMENT METHOD, BANK DETAILS & REPOSITIONED INVOICE TOTAL */}
                 <div className="space-y-6 pt-4 border-t border-border/80">
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start font-sans">
                     {/* Left: Editable Payment Method & Read-Only Bank Details */}
                     <div className="sm:col-span-7 space-y-2">
                       <Label className="label-caps font-bold">Payment Method</Label>
@@ -646,7 +628,7 @@ export default function NewInvoice() {
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                         placeholder="Bank Transfer, Cash, PayPal..."
-                        className="h-8 text-xs font-semibold border-0 border-b border-border/60 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 focus:border-emerald-500"
+                        className="h-8 text-xs font-semibold border-0 border-b border-border/60 rounded-none bg-transparent px-0 shadow-none focus-visible:ring-0 focus:border-emerald-500 font-sans"
                       />
 
                       <div className="pt-2">
@@ -658,7 +640,7 @@ export default function NewInvoice() {
                     </div>
 
                     {/* Right: Subtotal, Discount, Tax */}
-                    <div className="sm:col-span-5 space-y-2 text-xs text-right">
+                    <div className="sm:col-span-5 space-y-2 text-xs text-right font-sans">
                       <div className="flex justify-between items-center text-muted-foreground">
                         <span>Subtotal</span>
                         <span className="font-mono font-semibold text-foreground">
@@ -694,9 +676,9 @@ export default function NewInvoice() {
                     </div>
                   </div>
 
-                  {/* REPOSITIONED INVOICE TOTAL (Two-sided row immediately after Payment Method block) */}
+                  {/* REPOSITIONED INVOICE TOTAL */}
                   <div className="border-t border-b border-border/80 py-3.5 flex justify-between items-baseline font-bold bg-muted/20 px-4 rounded-xl">
-                    <span className="text-sm text-foreground uppercase tracking-wider font-extrabold">
+                    <span className="text-sm text-foreground uppercase tracking-wider font-extrabold font-sans">
                       Invoice Total
                     </span>
                     <span className="font-mono text-2xl font-extrabold text-foreground">
@@ -705,8 +687,8 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 7. PAYMENT DUE BY & FIXED INSTRUCTION TEXT */}
-                <div className="border-t border-border/70 pt-4 space-y-4">
+                {/* 6. PAYMENT DUE BY & FIXED INSTRUCTION TEXT */}
+                <div className="border-t border-border/70 pt-4 space-y-4 font-sans">
                   {/* Authorized Signature (if uploaded in Profile/Settings) */}
                   {sender.signatureUrl && (
                     <div className="space-y-1">

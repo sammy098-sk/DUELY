@@ -6,7 +6,7 @@
 
 /*
  * Duely design system — "ledger" aesthetic.
- * Paper background, navy ink, serif headers, monospace money, stamp accents.
+ * Paper background, navy ink, Fraunces serif headers, IBM Plex Mono money, stamp accents.
  * All colors are oklch semantic tokens. Never hardcode colors in components.
  */
 
@@ -15,9 +15,9 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 4px);
   --radius-xl: calc(var(--radius) + 10px);
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, serif;
-  --font-mono: "DM Mono", ui-monospace, monospace;
+  --font-sans: "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", "Playfair Display", ui-serif, Georgia, Cambria, serif;
+  --font-mono: "IBM Plex Mono", "DM Mono", ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
