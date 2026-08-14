@@ -3,20 +3,30 @@ import { cn } from "@/lib/utils";
 
 interface DuelyFooterProps {
   isDark?: boolean;
+  context?: "landing" | "authenticated";
 }
 
-export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
+export function DuelyFooter({ isDark = false, context = "landing" }: DuelyFooterProps) {
+  const isAuthenticated = context === "authenticated";
+
+  const companyLinks = {
+    about: isAuthenticated ? "/app/about" : "/about",
+    contact: isAuthenticated ? "/app/contact" : "/contact",
+    terms: isAuthenticated ? "/app/terms" : "/terms",
+    privacy: isAuthenticated ? "/app/privacy" : "/privacy",
+  };
+
   return (
     <footer
       className={cn(
-        "pt-16 sm:pt-24 space-y-12 text-left font-sans select-none",
-        isDark ? "text-white" : "text-slate-900"
+        "pt-16 sm:pt-20 space-y-12 text-left font-sans select-none border-t",
+        isDark ? "border-white/10 text-white" : "border-slate-200 text-slate-900"
       )}
     >
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6">
         {/* Left Side: Brand Wordmark & Tagline */}
         <div className="md:col-span-5 space-y-3">
-          <Link to="/" className="inline-block">
+          <Link to={isAuthenticated ? "/welcome" : "/"} className="inline-block">
             <span className="font-serif italic text-2xl font-extrabold tracking-tight">
               Duely
             </span>
@@ -83,7 +93,7 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/about"
+                  to={companyLinks.about}
                   className={cn(
                     "transition-colors",
                     isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
@@ -94,7 +104,7 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  to={companyLinks.contact}
                   className={cn(
                     "transition-colors",
                     isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
@@ -114,7 +124,7 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/terms"
+                  to={companyLinks.terms}
                   className={cn(
                     "transition-colors",
                     isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
@@ -125,7 +135,7 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
               </li>
               <li>
                 <Link
-                  to="/privacy"
+                  to={companyLinks.privacy}
                   className={cn(
                     "transition-colors",
                     isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
@@ -139,7 +149,7 @@ export function DuelyFooter({ isDark = false }: DuelyFooterProps) {
         </div>
       </div>
 
-      {/* Copyright Bottom Text (No Divider Line, No Systems Operational text) */}
+      {/* Copyright Bottom Text */}
       <div
         className={cn(
           "pt-8 pb-12 text-xs font-sans max-w-6xl mx-auto px-4 sm:px-6",

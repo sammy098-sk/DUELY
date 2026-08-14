@@ -414,7 +414,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
         </section>
 
         {/* 9. MINIMAL FOOTER */}
-        <DuelyFooter isDark={isDark} />
+        <DuelyFooter isDark={isDark} context={context} />
       </div>
 
       {/* Demo Modal (when clicking Watch Demo) */}

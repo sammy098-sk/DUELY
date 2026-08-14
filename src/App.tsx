@@ -21,11 +21,17 @@ import ComingSoonPage from "./pages/ComingSoon";
 import LandingPage from "./pages/Landing";
 import WelcomePage from "./pages/Welcome";
 
-// 4 New Public Unauthenticated Pages
+// Public Unauthenticated Pages
 import AboutPage from "./pages/About";
 import ContactPage from "./pages/Contact";
 import TermsPage from "./pages/Terms";
 import PrivacyPage from "./pages/Privacy";
+
+// Authenticated Pages inside AppShell
+import AppAboutPage from "./pages/app/AppAbout";
+import AppContactPage from "./pages/app/AppContact";
+import AppTermsPage from "./pages/app/AppTerms";
+import AppPrivacyPage from "./pages/app/AppPrivacy";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +78,40 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <WelcomePage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Authenticated App Shell Routes */}
+            <Route 
+              path="/app/about" 
+              element={
+                <ProtectedRoute>
+                  <AppAboutPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/app/contact" 
+              element={
+                <ProtectedRoute>
+                  <AppContactPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/app/terms" 
+              element={
+                <ProtectedRoute>
+                  <AppTermsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/app/privacy" 
+              element={
+                <ProtectedRoute>
+                  <AppPrivacyPage />
                 </ProtectedRoute>
               } 
             />
