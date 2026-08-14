@@ -7,7 +7,7 @@ import {
   Image,
   pdf,
 } from "@react-pdf/renderer";
-import { formatMoney, formatDateFormatted, daysOverdue } from "@/lib/invoice";
+import { formatMoney, formatDateFormatted } from "@/lib/invoice";
 
 export interface InvoicePDFProps {
   number: string;
@@ -40,7 +40,6 @@ export interface InvoicePDFProps {
   taxRate: number;
   total: number;
   paymentMethod: string;
-  isPaid?: boolean;
   notes: string;
 }
 
@@ -84,39 +83,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Helvetica-Bold",
     color: "#0F172A",
-  },
-  stampPaid: {
-    marginTop: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 4,
-    backgroundColor: "#DCFCE7",
-    color: "#15803D",
-    fontSize: 8.5,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
-  },
-  stampUnpaid: {
-    marginTop: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 4,
-    backgroundColor: "#FEF3C7",
-    color: "#B45309",
-    fontSize: 8.5,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
-  },
-  stampOverdue: {
-    marginTop: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 4,
-    backgroundColor: "#FEE2E2",
-    color: "#B91C1C",
-    fontSize: 8.5,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
   },
   metaRow: {
     flexDirection: "row",
@@ -325,14 +291,10 @@ export function InvoicePDF({
   const displayNum = number.startsWith("#") ? number : `#${number.replace(/^INV-/, "")}`;
   const cleanNotes = (notes || "").replace(/\[(Payment Method|Project):.*?\]/g, "").trim();
 
-  // Status derived 100% from presence/absence of due date
-  const isPaid = !dueDate;
-  const isOverdue = dueDate ? daysOverdue(dueDate) > 0 : false;
-
   return (
     <Document title={`Invoice-${displayNum.replace(/^#/, "")}`}>
       <Page size="A4" style={styles.page} wrap>
-        {/* 1. Header */}
+        {/* 1. Clean Header (Logo/Name on Left | NO. #0001 on Right — NO STATUS BADGE) */}
         <View style={styles.header}>
           <View>
             {sender.companyLogoUrl ? (
@@ -344,17 +306,10 @@ export function InvoicePDF({
           </View>
           <View style={styles.headerRight}>
             <Text style={styles.numberText}>NO. {displayNum}</Text>
-            {isPaid ? (
-              <Text style={styles.stampPaid}>● PAID</Text>
-            ) : isOverdue ? (
-              <Text style={styles.stampOverdue}>● OVERDUE</Text>
-            ) : (
-              <Text style={styles.stampUnpaid}>○ AWAITING PAYMENT</Text>
-            )}
           </View>
         </View>
 
-        {/* 2. Meta Row */}
+        {/* 2. Meta Row (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
         <View style={styles.metaRow}>
           <View style={styles.metaCol}>
             <Text style={styles.labelCaps}>INVOICE TO</Text>
@@ -448,13 +403,13 @@ export function InvoicePDF({
           </View>
         </View>
 
-        {/* 6. Repositioned Invoice Total Box */}
+        {/* 6. Invoice Total Box */}
         <View style={styles.totalBox} wrap={false}>
           <Text style={styles.totalLabel}>INVOICE TOTAL</Text>
           <Text style={styles.totalAmount}>{formatMoney(total, currency)}</Text>
         </View>
 
-        {/* 7. Footer & Instructions (Conditional based on Due Date) */}
+        {/* 7. Footer & Instructions (ONLY rendered if dueDate or signature or notes exist) */}
         {(dueDate || sender.signatureUrl || cleanNotes) ? (
           <View style={styles.footerSection} wrap={false}>
             {sender.signatureUrl ? (

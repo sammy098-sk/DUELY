@@ -12,11 +12,11 @@ import {
   Check,
   ChevronDown,
   Printer,
+  Calendar,
   X,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
-import { StampBadge } from "@/components/StampBadge";
 import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -72,7 +72,7 @@ export default function NewInvoice() {
     signatureUrl: "",
   });
   const [issueDate, setIssueDate] = useState(today());
-  const [dueDate, setDueDate] = useState<string>(inDays(14)); // Blank means Paid
+  const [dueDate, setDueDate] = useState<string>(inDays(14)); // Blank means Paid (no due date line)
   const [currency, setCurrency] = useState("NGN");
   const [taxRate, setTaxRate] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -86,14 +86,6 @@ export default function NewInvoice() {
 
   const [busy, setBusy] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
-
-  // Derived Payment Status: Empty due date = Paid. Due date exists = Awaiting or Overdue.
-  const currentStatus: InvoiceStatus = !dueDate
-    ? "paid"
-    : daysOverdue(dueDate) > 0
-      ? "overdue"
-      : "awaiting";
-  const isPaid = currentStatus === "paid";
 
   // Load existing profile details and next sequential invoice number
   useEffect(() => {
@@ -201,8 +193,6 @@ export default function NewInvoice() {
       return;
     }
 
-    // Persist logic: blank due date -> status = "paid", paid_at = now, due_date = null
-    // due date exists -> status = targetStatus or "sent" / "awaiting", paid_at = null, due_date = dueDate
     const isDraft = targetStatus === "draft";
     const finalStatus: InvoiceStatus = isDraft
       ? "draft"
@@ -261,7 +251,7 @@ export default function NewInvoice() {
       if (finalStatus === "draft") {
         toast.success("Saved Draft successfully.");
       } else if (finalStatus === "paid") {
-        toast.success("Invoice saved as Paid (no due date).");
+        toast.success("Invoice saved (no due date).");
       } else {
         toast.success("Invoice sent — Duely chases payment automatically!");
       }
@@ -294,7 +284,6 @@ export default function NewInvoice() {
         taxRate,
         total: totals.total,
         paymentMethod,
-        isPaid,
         notes,
       });
       toast.success("Invoice PDF downloaded!");
@@ -460,9 +449,8 @@ export default function NewInvoice() {
               {/* Document Container Surface */}
               <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-6 print-sheet relative">
                 
-                {/* 1. INVOICE HEADER (Logo/Name on Left | Static NO. & Derived Stamp on Right) */}
+                {/* 1. CLEAN INVOICE HEADER (Logo/Name on Left | Plain NO. #0001 on Right — NO STATUS BADGE) */}
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-5">
-                  {/* Left: Business Logo & Business Name */}
                   <div className="flex items-center gap-3">
                     {sender.companyLogoUrl ? (
                       <img
@@ -483,19 +471,15 @@ export default function NewInvoice() {
                     </div>
                   </div>
 
-                  {/* Right: PLAIN STATIC INVOICE NUMBER & DERIVED STAMP BADGE */}
-                  <div className="text-right flex flex-col items-end gap-1.5">
+                  <div className="text-right">
                     <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
                       <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
                       <span>{number}</span>
                     </div>
-
-                    {/* Stamp badge derived directly from due date (No manual toggle button) */}
-                    <StampBadge status={currentStatus} size="sm" />
                   </div>
                 </div>
 
-                {/* 2. META ROW (INVOICE TO | DATE | DUE DATE EDITOR) */}
+                {/* 2. CLEAN META ROW (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border/70 pb-5">
                   {/* Col 1: INVOICE TO */}
                   <div className="space-y-1">
@@ -508,34 +492,11 @@ export default function NewInvoice() {
                     />
                   </div>
 
-                  {/* Col 2: DATE & DUE DATE EDITOR (Clear due date = PAID) */}
+                  {/* Col 2: DATE (Issue Date Only) */}
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="label-caps font-bold">DATE &amp; DUE DATE</Label>
-                    </div>
-                    <div className="pt-1 text-xs space-y-1 font-sans">
-                      <div className="font-mono font-bold text-foreground">
-                        Issued: {formatDateFormatted(issueDate)}
-                      </div>
-                      <div className="flex items-center gap-1.5 no-print pt-0.5">
-                        <span className="text-muted-foreground text-[11px]">Due:</span>
-                        <input
-                          type="date"
-                          value={dueDate}
-                          onChange={(e) => setDueDate(e.target.value)}
-                          className="font-mono text-xs font-semibold text-foreground bg-transparent border-0 border-b border-border/60 p-0 outline-none cursor-pointer"
-                        />
-                        {dueDate && (
-                          <button
-                            type="button"
-                            onClick={() => setDueDate("")}
-                            title="Clear due date to mark as Paid"
-                            className="text-muted-foreground hover:text-foreground cursor-pointer text-[10px] uppercase font-bold tracking-wider px-1 bg-muted rounded"
-                          >
-                            Mark Paid
-                          </button>
-                        )}
-                      </div>
+                    <Label className="label-caps font-bold">DATE</Label>
+                    <div className="pt-1.5 font-mono text-xs font-bold text-foreground">
+                      {formatDateFormatted(issueDate)}
                     </div>
                   </div>
 
@@ -587,7 +548,7 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 4. LINE ITEMS TABLE (No internal scrollbars, natural unclipped height) */}
+                {/* 4. LINE ITEMS TABLE */}
                 <div className="space-y-4 pt-2">
                   <table className="w-full text-xs border-collapse">
                     <thead>
@@ -729,7 +690,7 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 6. CONDITIONAL PAYMENT DUE INSTRUCTION (ONLY rendered if dueDate exists) */}
+                {/* 6. BOTTOM DUE DATE EXCLUSIVE SECTION */}
                 {dueDate ? (
                   <div className="border-t border-border/70 pt-4 space-y-4 font-sans">
                     {sender.signatureUrl && (
@@ -744,24 +705,62 @@ export default function NewInvoice() {
                     )}
 
                     <div className="text-xs space-y-2">
-                      <p className="font-semibold text-foreground">
-                        Payment due by <span className="font-mono font-bold">{formatDateFormatted(dueDate)}</span>
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-foreground">
+                          Payment due by{" "}
+                          <span className="font-mono font-bold text-foreground">
+                            {formatDateFormatted(dueDate)}
+                          </span>
+                          .
+                        </p>
+                        <div className="flex items-center gap-2 no-print">
+                          <input
+                            type="date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            className="font-mono text-xs font-semibold text-foreground bg-transparent border-0 border-b border-border/60 p-0 outline-none cursor-pointer"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setDueDate("")}
+                            className="text-xs text-muted-foreground hover:text-foreground cursor-pointer underline font-medium"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
                       <p className="text-xs text-muted-foreground font-medium">
                         Please reference the invoice number (<span className="font-mono font-bold text-foreground">{number}</span>) when making payment.
                       </p>
                     </div>
                   </div>
-                ) : sender.signatureUrl ? (
-                  <div className="border-t border-border/70 pt-4 font-sans">
-                    <Label className="label-caps font-bold">Authorized Signature</Label>
-                    <img
-                      src={sender.signatureUrl}
-                      alt="Signature"
-                      className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40 mt-1"
-                    />
+                ) : (
+                  <div className="space-y-3 font-sans">
+                    {sender.signatureUrl && (
+                      <div className="border-t border-border/70 pt-4">
+                        <Label className="label-caps font-bold">Authorized Signature</Label>
+                        <img
+                          src={sender.signatureUrl}
+                          alt="Signature"
+                          className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40 mt-1"
+                        />
+                      </div>
+                    )}
+
+                    {/* No-print control to add a due date if needed */}
+                    <div className="no-print pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-dashed border-border/50">
+                      <span className="text-[11px]">No due date set (Invoice is treated as Paid)</span>
+                      <button
+                        type="button"
+                        onClick={() => setDueDate(inDays(14))}
+                        className="inline-flex items-center gap-1 font-bold text-xs text-primary hover:underline cursor-pointer"
+                      >
+                        <Calendar className="size-3.5" />
+                        <span>Add Due Date</span>
+                      </button>
+                    </div>
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
           </div>

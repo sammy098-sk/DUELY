@@ -4,7 +4,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { BellRing, CheckCircle2, Download, Printer, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { StampBadge } from "@/components/StampBadge";
 import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -66,7 +65,6 @@ export default function InvoiceDetail() {
   const paymentMethod = invoice.payment_method || paymentMethodMatch?.[1] || "Bank Transfer";
   const projectName = invoice.project_name || projectNameMatch?.[1] || "Invoice Details";
   const cleanNotes = notesText.replace(/\[(Payment Method|Project):.*?\]/g, "").trim();
-  const isPaid = status === "paid";
 
   const displayNum = invoice.number.startsWith("#")
     ? invoice.number
@@ -119,7 +117,6 @@ export default function InvoiceDetail() {
         taxRate: Number(invoice.tax_rate),
         total: totals.total,
         paymentMethod,
-        isPaid,
         notes: cleanNotes,
       });
       toast.success("Invoice PDF downloaded!");
@@ -188,7 +185,7 @@ export default function InvoiceDetail() {
         {/* Printable Document Surface */}
         <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-6 relative">
           
-          {/* 1. HEADER (Logo & Name on Left | Plain Static NO. #0001 & Derived Stamp Badge on Right) */}
+          {/* 1. CLEAN HEADER (Logo & Name on Left | Plain Static NO. #0001 on Right — NO STATUS BADGE) */}
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
             <div className="flex items-center gap-3">
               {profile?.company_logo_url ? (
@@ -210,12 +207,11 @@ export default function InvoiceDetail() {
               </div>
             </div>
 
-            <div className="text-right flex flex-col items-end gap-2">
+            <div className="text-right">
               <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
                 <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
                 <span>{displayNum}</span>
               </div>
-              <StampBadge status={status} size="sm" />
             </div>
           </header>
 
@@ -258,7 +254,7 @@ export default function InvoiceDetail() {
             </div>
           </div>
 
-          {/* 4. LINE ITEMS TABLE (NO INTERNAL SCROLLBAR, UNCLIPPED HEIGHT) */}
+          {/* 4. LINE ITEMS TABLE */}
           <div className="space-y-3">
             <table className="w-full text-xs border-collapse">
               <thead>
@@ -324,7 +320,6 @@ export default function InvoiceDetail() {
               </div>
             </div>
 
-            {/* REPOSITIONED INVOICE TOTAL */}
             <div className="border-t border-b border-border py-3.5 flex justify-between items-baseline font-bold bg-muted/20 px-4 rounded-xl">
               <span className="text-sm text-foreground uppercase tracking-wider font-extrabold font-sans">
                 Invoice Total
@@ -335,7 +330,7 @@ export default function InvoiceDetail() {
             </div>
           </div>
 
-          {/* 6. CONDITIONAL PAYMENT DUE INSTRUCTION (ONLY rendered if invoice.due_date exists) */}
+          {/* 6. BOTTOM DUE DATE EXCLUSIVE SECTION */}
           {invoice.due_date ? (
             <div className="border-t border-border pt-4 space-y-4 text-xs font-sans">
               {profile?.signature_url && (
@@ -351,7 +346,7 @@ export default function InvoiceDetail() {
 
               <div className="space-y-1.5">
                 <p className="font-semibold text-foreground">
-                  Payment due by <span className="font-mono font-bold">{formatDateFormatted(invoice.due_date)}</span>
+                  Payment due by <span className="font-mono font-bold">{formatDateFormatted(invoice.due_date)}</span>.
                 </p>
                 <p className="text-muted-foreground font-medium">
                   Please reference the invoice number (<span className="font-mono font-bold text-foreground">{displayNum}</span>) when making payment.
