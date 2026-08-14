@@ -29,7 +29,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
   return (
     <div
       className={cn(
-        "relative min-h-screen w-full font-sans transition-colors duration-200 overflow-hidden select-none",
+        "relative min-h-screen w-full font-sans transition-colors duration-200 select-none pb-16",
         isLanding
           ? isDark
             ? "bg-[#0A0F0D] text-white"
@@ -97,7 +97,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
       <div
         className={cn(
           "relative z-10 mx-auto max-w-5xl px-4 sm:px-6 text-center space-y-8",
-          isLanding ? "pt-8 sm:pt-12 pb-20" : "py-8 sm:py-12"
+          isLanding ? "pt-8 sm:pt-12 pb-16" : "py-8 sm:py-12"
         )}
       >
         {/* 1. HERO BADGE (Two-tone split pill badge) */}
@@ -106,7 +106,12 @@ export function DuelyHero({ context }: DuelyHeroProps) {
             <span className="rounded-full bg-emerald-500 text-neutral-950 px-3 py-1 font-extrabold tracking-wide">
               AI-ASSISTED
             </span>
-            <span className={cn("px-3 py-1 font-extrabold tracking-wide", isDark ? "text-emerald-400" : "text-emerald-700")}>
+            <span
+              className={cn(
+                "px-3 py-1 font-extrabold tracking-wide",
+                isDark ? "text-emerald-400" : "text-emerald-700"
+              )}
+            >
               FREELANCER-BUILT
             </span>
           </div>
@@ -201,178 +206,8 @@ export function DuelyHero({ context }: DuelyHeroProps) {
           )}
         </div>
 
-        {/* 5. HERO PRODUCT PREVIEW (Elevated Browser Chrome Frame) */}
-        <div
-          className={cn(
-            "animate-hero-fade relative mt-8 sm:mt-12 rounded-2xl border shadow-2xl p-2 sm:p-3 text-left overflow-hidden group transition-colors",
-            isDark
-              ? "border-white/15 bg-neutral-900/90"
-              : "border-slate-200 bg-white/90 shadow-xl"
-          )}
-          style={{ animationDelay: "300ms" }}
-        >
-          {/* macOS Browser Chrome Controls Bar */}
-          <div
-            className={cn(
-              "flex items-center justify-between px-3 py-2 border-b rounded-t-xl",
-              isDark
-                ? "border-white/10 bg-neutral-950/80"
-                : "border-slate-200 bg-slate-100/90"
-            )}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="size-3 rounded-full bg-red-500/80" />
-              <span className="size-3 rounded-full bg-amber-500/80" />
-              <span className="size-3 rounded-full bg-emerald-500/80" />
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-md px-3 py-1 text-[11px] font-mono border",
-                isDark
-                  ? "bg-white/5 text-neutral-400 border-white/10"
-                  : "bg-white text-slate-600 border-slate-200"
-              )}
-            >
-              <span className="text-emerald-500 font-bold">https://</span>duely.app/invoices/new
-            </div>
-            <div className="w-12" />
-          </div>
-
-          {/* Screenshot Content (Duely Invoice Generator Layout Representation) */}
-          <div
-            className={cn(
-              "rounded-b-xl p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4",
-              isDark ? "bg-[#0E1217] text-neutral-100" : "bg-[#F8F9FA] text-slate-900"
-            )}
-          >
-            {/* Left AI Generator Mock */}
-            <div
-              className={cn(
-                "md:col-span-5 rounded-xl border p-4 space-y-3",
-                isDark
-                  ? "border-white/10 bg-neutral-900"
-                  : "border-slate-200 bg-white shadow-2xs"
-              )}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-500">
-                  AI Invoice Generator
-                </span>
-                <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 px-2 py-0.5 rounded font-bold">
-                  Prompt Mode
-                </span>
-              </div>
-
-              <div
-                className={cn(
-                  "rounded-lg border p-3 text-xs font-mono space-y-1",
-                  isDark
-                    ? "border-white/10 bg-neutral-950 text-neutral-300"
-                    : "border-slate-200 bg-slate-50 text-slate-800"
-                )}
-              >
-                <p className="text-emerald-500 font-bold">&gt; Prompt:</p>
-                <p>
-                  Create an invoice for Acme Studio for ₦420,000 for website redesign, due in 14 days.
-                </p>
-              </div>
-
-              <div
-                className={cn(
-                  "flex items-center justify-between text-[10px] font-mono",
-                  isDark ? "text-neutral-400" : "text-slate-500"
-                )}
-              >
-                <span>18 / 4,000 words</span>
-                <span className="text-emerald-500 font-bold">AI Parsing Ready</span>
-              </div>
-
-              <div className="h-9 w-full rounded-lg bg-emerald-500 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
-                <Sparkles className="size-3.5 fill-current" />
-                <span>Generated Invoice</span>
-              </div>
-            </div>
-
-            {/* Right Live Invoice Document Mock */}
-            <div className="md:col-span-7 rounded-xl border border-slate-200 bg-white text-neutral-900 p-4 sm:p-5 space-y-3 shadow-2xs">
-              <div className="flex justify-between items-start border-b pb-2.5">
-                <div>
-                  <h3 className="font-extrabold text-lg uppercase tracking-tight text-neutral-900">INVOICE</h3>
-                  <p className="text-[10px] text-neutral-500">Duely Studio · Lagos, Nigeria</p>
-                </div>
-                <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] font-mono font-bold text-neutral-600">
-                  #0048
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 text-[10px] gap-2 text-neutral-600">
-                <div>
-                  <p className="font-bold text-neutral-900 uppercase">Invoice to:</p>
-                  <p className="font-semibold text-neutral-800">Acme Studio</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-neutral-900 uppercase">Total Due:</p>
-                  <p className="font-mono font-extrabold text-sm text-neutral-900">₦420,000.00</p>
-                </div>
-              </div>
-
-              <div className="rounded border text-[10px] overflow-hidden">
-                <div className="bg-neutral-100 px-2 py-1 flex justify-between font-bold text-neutral-700">
-                  <span>Description</span>
-                  <span>Amount</span>
-                </div>
-                <div className="px-2 py-1.5 flex justify-between font-mono">
-                  <span>Website Redesign &amp; Development</span>
-                  <span className="font-bold">₦420,000.00</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 6. FLOATING PRODUCT STAT CARDS */}
-          {/* Floating Card 1: Bottom Left */}
-          <div
-            className={cn(
-              "absolute bottom-4 left-4 sm:bottom-6 sm:left-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md flex items-center gap-3",
-              isDark
-                ? "border-emerald-500/30 bg-neutral-900/95 text-white"
-                : "border-emerald-500/30 bg-white/95 text-slate-900"
-            )}
-          >
-            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500">
-              <CheckCircle2 className="size-4" />
-            </div>
-            <div>
-              <p className="text-xs font-bold flex items-center gap-1">
-                <span>Reminder sent</span>
-              </p>
-              <p className={cn("text-[10px]", isDark ? "text-neutral-400" : "text-slate-500")}>
-                3 invoices followed up via WhatsApp
-              </p>
-            </div>
-          </div>
-
-          {/* Floating Card 2: Bottom Right */}
-          <div
-            className={cn(
-              "hidden sm:flex absolute bottom-6 right-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md items-center gap-3",
-              isDark
-                ? "border-emerald-500/30 bg-neutral-900/95 text-white"
-                : "border-emerald-500/30 bg-white/95 text-slate-900"
-            )}
-          >
-            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500 font-bold text-xs">
-              ₦
-            </div>
-            <div>
-              <p className="text-xs font-mono font-extrabold">₦1.2M collected</p>
-              <p className={cn("text-[10px] flex items-center gap-1", isDark ? "text-neutral-400" : "text-slate-500")}>
-                <TrendingUp className="size-3 text-emerald-500" />
-                <span>+24% this month</span>
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* 5. STATIC PRODUCT MOCKUP (JSX Decorative Representation Only - No iFrame) */}
+        <InvoicePreviewMockup isDark={isDark} />
 
         {/* 7. WORKS-WHERE-YOUR-CLIENTS-ARE INTEGRATION STRIP */}
         <div
@@ -441,6 +276,183 @@ export function DuelyHero({ context }: DuelyHeroProps) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── ISOLATED STATIC PRODUCT PREVIEW MOCKUP (No iframe, No live app state) ── */
+function InvoicePreviewMockup({ isDark }: { isDark: boolean }) {
+  return (
+    <div
+      className={cn(
+        "animate-hero-fade relative mt-8 sm:mt-12 rounded-2xl border shadow-2xl p-2 sm:p-3 text-left transition-colors h-auto",
+        isDark
+          ? "border-white/15 bg-neutral-900/90"
+          : "border-slate-200 bg-white/90 shadow-xl"
+      )}
+      style={{ animationDelay: "300ms" }}
+    >
+      {/* macOS Browser Chrome Controls Bar */}
+      <div
+        className={cn(
+          "flex items-center justify-between px-3 py-2 border-b rounded-t-xl",
+          isDark
+            ? "border-white/10 bg-neutral-950/80"
+            : "border-slate-200 bg-slate-100/90"
+        )}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="size-3 rounded-full bg-red-500/80" />
+          <span className="size-3 rounded-full bg-amber-500/80" />
+          <span className="size-3 rounded-full bg-emerald-500/80" />
+        </div>
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-md px-3 py-1 text-[11px] font-mono border",
+            isDark
+              ? "bg-white/5 text-neutral-400 border-white/10"
+              : "bg-white text-slate-600 border-slate-200"
+          )}
+        >
+          <span className="text-emerald-500 font-bold">https://</span>duely.app/invoices/new
+        </div>
+        <div className="w-12" />
+      </div>
+
+      {/* Screenshot Content (Duely Invoice Generator Layout Representation) */}
+      <div
+        className={cn(
+          "rounded-b-xl p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 pb-12 sm:pb-14",
+          isDark ? "bg-[#0E1217] text-neutral-100" : "bg-[#F8F9FA] text-slate-900"
+        )}
+      >
+        {/* Left AI Generator Mock */}
+        <div
+          className={cn(
+            "md:col-span-5 rounded-xl border p-4 space-y-3",
+            isDark
+              ? "border-white/10 bg-neutral-900"
+              : "border-slate-200 bg-white shadow-2xs"
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-500">
+              AI INVOICE GENERATOR
+            </span>
+            <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 px-2 py-0.5 rounded font-bold">
+              Prompt Mode
+            </span>
+          </div>
+
+          <div
+            className={cn(
+              "rounded-lg border p-3 text-xs font-mono space-y-1",
+              isDark
+                ? "border-white/10 bg-neutral-950 text-neutral-300"
+                : "border-slate-200 bg-slate-50 text-slate-800"
+            )}
+          >
+            <p className="text-emerald-500 font-bold">&gt; Prompt:</p>
+            <p>
+              Create an invoice for Acme Studio for ₦420,000 for website redesign, due in 14 days.
+            </p>
+          </div>
+
+          <div
+            className={cn(
+              "flex items-center justify-between text-[10px] font-mono",
+              isDark ? "text-neutral-400" : "text-slate-500"
+            )}
+          >
+            <span>18 / 4,000 words</span>
+            <span className="text-emerald-500 font-bold">AI Parsing Ready</span>
+          </div>
+
+          <div className="h-9 w-full rounded-lg bg-emerald-500 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <Sparkles className="size-3.5 fill-current" />
+            <span>Generate Invoice</span>
+          </div>
+        </div>
+
+        {/* Right Live Invoice Document Mock */}
+        <div className="md:col-span-7 rounded-xl border border-slate-200 bg-white text-neutral-900 p-4 sm:p-5 space-y-3 shadow-2xs">
+          <div className="flex justify-between items-start border-b border-slate-200 pb-2.5">
+            <div>
+              <h3 className="font-extrabold text-lg uppercase tracking-tight text-neutral-900">INVOICE</h3>
+              <p className="text-[10px] text-neutral-500">Duely Studio · Lagos, Nigeria</p>
+            </div>
+            <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] font-mono font-bold text-neutral-600">
+              #0048
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 text-[10px] gap-2 text-neutral-600">
+            <div>
+              <p className="font-bold text-neutral-900 uppercase">Billed To:</p>
+              <p className="font-semibold text-neutral-800">Acme Studio</p>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-neutral-900 uppercase">Total Due:</p>
+              <p className="font-mono font-extrabold text-sm text-neutral-900">₦420,000.00</p>
+            </div>
+          </div>
+
+          <div className="rounded border border-slate-200 text-[10px] overflow-hidden">
+            <div className="bg-neutral-100 px-2 py-1 flex justify-between font-bold text-neutral-700">
+              <span>Description</span>
+              <span>Amount</span>
+            </div>
+            <div className="px-2 py-1.5 flex justify-between font-mono border-t border-slate-100">
+              <span>Website Design &amp; Development</span>
+              <span className="font-bold">₦420,000.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Product Stat Cards */}
+      {/* Floating Card 1: Bottom Left */}
+      <div
+        className={cn(
+          "absolute bottom-3 left-4 sm:bottom-4 sm:left-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md flex items-center gap-3",
+          isDark
+            ? "border-emerald-500/30 bg-neutral-900/95 text-white"
+            : "border-emerald-500/30 bg-white/95 text-slate-900"
+        )}
+      >
+        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500">
+          <CheckCircle2 className="size-4" />
+        </div>
+        <div>
+          <p className="text-xs font-bold flex items-center gap-1">
+            <span>Reminder sent</span>
+          </p>
+          <p className={cn("text-[10px]", isDark ? "text-neutral-400" : "text-slate-500")}>
+            3 invoices followed up via WhatsApp
+          </p>
+        </div>
+      </div>
+
+      {/* Floating Card 2: Bottom Right */}
+      <div
+        className={cn(
+          "hidden sm:flex absolute bottom-4 right-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md items-center gap-3",
+          isDark
+            ? "border-emerald-500/30 bg-neutral-900/95 text-white"
+            : "border-emerald-500/30 bg-white/95 text-slate-900"
+        )}
+      >
+        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500 font-bold text-xs">
+          ₦
+        </div>
+        <div>
+          <p className="text-xs font-mono font-extrabold">₦1.2M collected</p>
+          <p className={cn("text-[10px] flex items-center gap-1", isDark ? "text-neutral-400" : "text-slate-500")}>
+            <TrendingUp className="size-3 text-emerald-500" />
+            <span>+24% this month</span>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
