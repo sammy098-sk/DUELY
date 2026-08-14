@@ -179,7 +179,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
                 size="lg"
                 className="h-12 px-7 rounded-xl font-extrabold text-sm gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
-                <Link to="/invoices">
+                <Link to="/dashboard">
                   <span>Go to Dashboard</span>
                   <ArrowRight className="size-4 stroke-[2.5]" />
                 </Link>

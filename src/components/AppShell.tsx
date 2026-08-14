@@ -16,6 +16,8 @@ import {
   Sun,
   Moon,
   Home,
+  LayoutDashboard,
+  PlusCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,14 +34,16 @@ interface AppShellProps {
 }
 
 export const navItems = [
-  { to: "/welcome", label: "Welcome", icon: Home },
-  { to: "/quibot", label: "Quibot AI", icon: Sparkles },
-  { to: "/invoices/new", label: "Invoices", icon: FileText, matchPrefix: "/invoices" },
-  { to: "/estimates", label: "Estimates", icon: FileSpreadsheet },
-  { to: "/receipts", label: "Receipts", icon: Receipt },
-  { to: "/revenue-forecast", label: "Revenue Forecast", icon: TrendingUp },
-  { to: "/tutorial", label: "Tutorial", icon: GraduationCap },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/welcome", label: "Welcome", icon: Home, exact: true },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/quibot", label: "Quibot AI", icon: Sparkles, exact: true },
+  { to: "/invoices", label: "Invoices", icon: FileText, exact: true },
+  { to: "/invoices/new", label: "New Invoice", icon: PlusCircle, exact: true },
+  { to: "/estimates", label: "Estimates", icon: FileSpreadsheet, exact: true },
+  { to: "/receipts", label: "Receipts", icon: Receipt, exact: true },
+  { to: "/revenue-forecast", label: "Revenue Forecast", icon: TrendingUp, exact: true },
+  { to: "/tutorial", label: "Tutorial", icon: GraduationCap, exact: true },
+  { to: "/profile", label: "Profile", icon: User, exact: true },
 ];
 
 export function AppShell({ children, pageTitle = "Invoice Generator", headerActions }: AppShellProps) {
@@ -116,10 +120,7 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
     );
   }
 
-  const isNavItemActive = (to: string, matchPrefix?: string) => {
-    if (matchPrefix) {
-      return pathname === to || pathname.startsWith(matchPrefix);
-    }
+  const isNavItemActive = (to: string) => {
     return pathname === to;
   };
 
@@ -185,7 +186,7 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
             onClick={() =>
               toast.info("Duely Help: Create an invoice by prompt or file, review live preview, and send.")
             }
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md cursor-pointer"
           >
             <HelpCircle className="size-4 text-muted-foreground" />
             <span className="hidden md:inline">Do you need help?</span>
@@ -239,7 +240,7 @@ function SidebarContent({
   pathname: string;
   collapsed: boolean;
   onToggleCollapse?: () => void;
-  isNavItemActive: (to: string, matchPrefix?: string) => boolean;
+  isNavItemActive: (to: string) => boolean;
   onSignOut: () => void;
   logoUrl?: string;
   resolvedTheme: "light" | "dark";
@@ -259,7 +260,7 @@ function SidebarContent({
                 type="button"
                 onClick={onToggleCollapse}
                 title="Expand Sidebar"
-                className="size-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+                className="size-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0 cursor-pointer"
               >
                 <PanelLeftOpen className="size-4" />
               </button>
@@ -307,7 +308,7 @@ function SidebarContent({
                 type="button"
                 onClick={onToggleCollapse}
                 title="Collapse Sidebar"
-                className="size-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+                className="size-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0 cursor-pointer"
               >
                 <PanelLeftClose className="size-4" />
               </button>
@@ -319,7 +320,7 @@ function SidebarContent({
       {/* 2. SCROLLABLE MIDDLE NAVIGATION (flex-1 overflow-y-auto min-h-0) */}
       <nav className="flex-1 overflow-y-auto min-h-0 p-3 space-y-1">
         {navItems.map((item) => {
-          const active = isNavItemActive(item.to, item.matchPrefix);
+          const active = isNavItemActive(item.to);
 
           return (
             <Link
@@ -349,7 +350,7 @@ function SidebarContent({
           onClick={onToggleTheme}
           title={collapsed ? `Theme: ${resolvedTheme === "dark" ? "Dark" : "Light"}` : undefined}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
+            "flex w-full items-center gap-2.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer",
             collapsed ? "justify-center px-0" : "px-3"
           )}
         >
@@ -369,7 +370,7 @@ function SidebarContent({
           onClick={onSignOut}
           title={collapsed ? "Log out" : undefined}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors",
+            "flex w-full items-center gap-2.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer",
             collapsed ? "justify-center px-0" : "px-3"
           )}
         >

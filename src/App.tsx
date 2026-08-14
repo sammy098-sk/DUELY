@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import Dashboard from "./pages/Dashboard";
+import InvoicesPage from "./pages/Invoices";
 import AuthPage from "./pages/Auth";
 import NewInvoice from "./pages/NewInvoice";
 import InvoiceDetail from "./pages/InvoiceDetail";
@@ -63,14 +64,27 @@ export function App() {
               } 
             />
 
+            {/* Dedicated Dashboard Route */}
             <Route 
-              path="/invoices" 
+              path="/dashboard" 
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } 
             />
+
+            {/* Dedicated Invoice History Route */}
+            <Route 
+              path="/invoices" 
+              element={
+                <ProtectedRoute>
+                  <InvoicesPage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Dedicated AI Invoice Generator Route */}
             <Route 
               path="/invoices/new" 
               element={
@@ -79,6 +93,7 @@ export function App() {
                 </ProtectedRoute>
               } 
             />
+            
             <Route 
               path="/invoices/:id" 
               element={
@@ -150,7 +165,7 @@ export function App() {
               } 
             />
 
-            {/* Profile Page & Settings Redirect */}
+            {/* Unified Profile Page & Settings Redirect */}
             <Route 
               path="/profile" 
               element={
