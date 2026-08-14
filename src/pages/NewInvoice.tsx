@@ -11,10 +11,12 @@ import {
   Loader2,
   Check,
   ChevronDown,
+  Printer,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { StampBadge } from "@/components/StampBadge";
+import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -82,13 +84,13 @@ export default function NewInvoice() {
   ]);
 
   const [busy, setBusy] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   // Load existing profile details and next sequential invoice number
   useEffect(() => {
     (async () => {
       if (!user) return;
       
-      // Fetch existing invoices to derive sequential number e.g. #0001, #0002
       const { data: invData } = await supabase.from("invoices").select("number");
       if (invData && invData.length > 0) {
         const nextNum = nextInvoiceNumber(invData.map((d) => d.number));
@@ -97,7 +99,6 @@ export default function NewInvoice() {
         setNumber("#0001");
       }
 
-      // Fetch user branding and payment settings from profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -253,16 +254,42 @@ export default function NewInvoice() {
     }
   }
 
-  function handleDownloadPDF() {
-    toast.info("Preparing PDF preview for print/download…");
-    setTimeout(() => {
-      window.print();
-    }, 400);
+  // Programmatic PDF Download using @react-pdf/renderer (NO window.print())
+  async function handleDownloadPDF() {
+    if (downloadingPDF) return;
+    setDownloadingPDF(true);
+    toast.info("Generating PDF file…");
+
+    try {
+      await downloadInvoicePDF({
+        number,
+        sender,
+        client,
+        projectName,
+        issueDate,
+        dueDate,
+        currency,
+        items,
+        subtotal: totals.subtotal,
+        discount,
+        taxRate,
+        total: totals.total,
+        paymentMethod,
+        isPaid,
+        notes,
+      });
+      toast.success("Invoice PDF downloaded!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to generate PDF");
+    } finally {
+      setDownloadingPDF(false);
+    }
   }
 
   // Header CTA buttons passed into AppShell header Actions slot
   const headerActions = (
     <div className="flex items-center gap-2.5">
+      {/* Save Draft & Download PDF Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -274,18 +301,27 @@ export default function NewInvoice() {
             <ChevronDown className="size-3.5 opacity-70" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuItem onClick={() => saveInvoice("draft")} disabled={busy} className="gap-2 cursor-pointer text-xs font-medium">
             <Save className="size-4 text-muted-foreground" />
             <span>Save Draft</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDownloadPDF} className="gap-2 cursor-pointer text-xs font-medium">
-            <Download className="size-4 text-muted-foreground" />
-            <span>Download PDF</span>
+          <DropdownMenuItem onClick={handleDownloadPDF} disabled={downloadingPDF} className="gap-2 cursor-pointer text-xs font-medium">
+            {downloadingPDF ? (
+              <Loader2 className="size-4 animate-spin text-primary" />
+            ) : (
+              <Download className="size-4 text-muted-foreground" />
+            )}
+            <span>{downloadingPDF ? "Generating PDF…" : "Download PDF"}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.print()} className="gap-2 cursor-pointer text-xs font-medium border-t border-border/50">
+            <Printer className="size-4 text-muted-foreground" />
+            <span>Print Invoice</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Primary Action CTA: Send Invoice */}
       <Button
         onClick={() => saveInvoice(isPaid ? "paid" : "awaiting")}
         disabled={busy}
@@ -432,13 +468,13 @@ export default function NewInvoice() {
 
                   {/* Right: STATIC INVOICE NUMBER & MINIMAL DOCUMENT TOGGLE */}
                   <div className="text-right flex flex-col items-end gap-2">
-                    {/* PLAIN STATIC INVOICE NUMBER (No input, no pill wrapper) */}
+                    {/* PLAIN STATIC INVOICE NUMBER */}
                     <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
                       <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
                       <span>{number}</span>
                     </div>
 
-                    {/* MINIMAL DOCUMENT PAID/NOT PAID TOGGLE (Document-style control, non-button badge) */}
+                    {/* MINIMAL DOCUMENT PAID/NOT PAID TOGGLE */}
                     <button
                       type="button"
                       onClick={() => setIsPaid(!isPaid)}

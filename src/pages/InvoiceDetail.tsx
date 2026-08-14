@@ -2,9 +2,10 @@ import { useParams } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { BellRing, CheckCircle2, Printer } from "lucide-react";
+import { BellRing, CheckCircle2, Download, Printer, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StampBadge } from "@/components/StampBadge";
+import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { supabase } from "@/integrations/supabase/client";
 import {
   computeTotals,
@@ -20,6 +21,7 @@ export default function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const [sending, setSending] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["invoice", id],
@@ -64,6 +66,11 @@ export default function InvoiceDetail() {
   const paymentMethod = invoice.payment_method || paymentMethodMatch?.[1] || "Bank Transfer";
   const projectName = invoice.project_name || projectNameMatch?.[1] || "Invoice Details";
   const cleanNotes = notesText.replace(/\[(Payment Method|Project):.*?\]/g, "").trim();
+  const isPaid = status === "paid";
+
+  const displayNum = invoice.number.startsWith("#")
+    ? invoice.number
+    : `#${invoice.number.replace(/^INV-/, "")}`;
 
   async function markPaid() {
     const { error } = await supabase
@@ -77,6 +84,50 @@ export default function InvoiceDetail() {
     toast.success("Marked as paid. Chasing stopped.");
     qc.invalidateQueries({ queryKey: ["invoice", id] });
     qc.invalidateQueries({ queryKey: ["invoices"] });
+  }
+
+  async function handleDownloadPDF() {
+    if (downloadingPDF) return;
+    setDownloadingPDF(true);
+    toast.info("Generating PDF file…");
+
+    try {
+      await downloadInvoicePDF({
+        number: displayNum,
+        sender: {
+          name: profile?.business_name || profile?.company_name || "Duely Studio",
+          email: profile?.contact_email || "",
+          phone: profile?.phone || "",
+          address: profile?.address || "",
+          bankDetails: profile?.bank_details || "",
+          companyLogoUrl: profile?.company_logo_url || "",
+          signatureUrl: profile?.signature_url || "",
+        },
+        client: {
+          name: invoice.client_name,
+          email: invoice.client_email,
+          phone: invoice.client_phone,
+          address: invoice.client_address,
+        },
+        projectName,
+        issueDate: invoice.issue_date,
+        dueDate: invoice.due_date,
+        currency: invoice.currency,
+        items,
+        subtotal: totals.subtotal,
+        discount: Number(invoice.discount),
+        taxRate: Number(invoice.tax_rate),
+        total: totals.total,
+        paymentMethod,
+        isPaid,
+        notes: cleanNotes,
+      });
+      toast.success("Invoice PDF downloaded!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to generate PDF");
+    } finally {
+      setDownloadingPDF(false);
+    }
   }
 
   async function chase() {
@@ -100,10 +151,6 @@ export default function InvoiceDetail() {
     }
   }
 
-  const displayNum = invoice.number.startsWith("#")
-    ? invoice.number
-    : `#${invoice.number.replace(/^INV-/, "")}`;
-
   return (
     <AppShell pageTitle={`Invoice ${displayNum}`}>
       <div className="space-y-6 p-4 lg:p-8 max-w-4xl mx-auto font-sans">
@@ -126,10 +173,16 @@ export default function InvoiceDetail() {
               </Button>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
-            <Printer className="size-3.5" />
-            <span>Download PDF</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={downloadingPDF} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
+              {downloadingPDF ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+              <span>{downloadingPDF ? "Generating PDF…" : "Download PDF"}</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
+              <Printer className="size-3.5" />
+              <span>Print</span>
+            </Button>
+          </div>
         </div>
 
         {/* Printable Document Surface */}
@@ -158,7 +211,6 @@ export default function InvoiceDetail() {
             </div>
 
             <div className="text-right flex flex-col items-end gap-2">
-              {/* PLAIN STATIC INVOICE NUMBER */}
               <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
                 <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
                 <span>{displayNum}</span>
@@ -220,7 +272,6 @@ export default function InvoiceDetail() {
               <tbody className="divide-y divide-border">
                 {items.map((item, i) => (
                   <tr key={i} className="align-top">
-                    {/* Item Description Column — WRAPPING, NO TRUNCATION */}
                     <td className="py-3 pr-3 text-left font-medium text-foreground whitespace-normal overflow-wrap-anywhere break-words leading-relaxed font-sans">
                       {item.description}
                     </td>
