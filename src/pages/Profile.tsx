@@ -24,6 +24,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+
+// Minimalist Underline Input & Textarea Style Classes
+const underlineInputClass =
+  "w-full bg-transparent border-0 border-b border-border/80 rounded-none px-0 py-2 text-xs font-semibold text-foreground placeholder:text-muted-foreground/40 shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors";
+
+const underlineTextareaClass =
+  "w-full bg-transparent border-0 border-b border-border/80 rounded-none px-0 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors resize-none";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -145,7 +153,7 @@ export default function ProfilePage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-                Profile & Settings
+                Profile &amp; Settings
               </h1>
               <p className="mt-1 text-xs text-muted-foreground">
                 Manage your personal information, invoice branding, and payment configurations.
@@ -156,7 +164,7 @@ export default function ProfilePage() {
                 variant="destructive"
                 size="sm"
                 onClick={handleLogout}
-                className="gap-1.5 text-xs font-bold"
+                className="gap-1.5 text-xs font-bold cursor-pointer"
               >
                 <LogOut className="size-3.5" />
                 Log out
@@ -176,11 +184,13 @@ export default function ProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2 text-xs">
               <div className="space-y-1">
                 <Label className="label-caps">Full Name</Label>
-                <p className="font-semibold text-sm text-foreground py-1">{fullName}</p>
+                <p className="font-semibold text-sm text-foreground py-1 border-b border-border/40">
+                  {fullName}
+                </p>
               </div>
               <div className="space-y-1">
                 <Label className="label-caps">Email Address</Label>
-                <div className="flex items-center gap-2 py-1 text-muted-foreground">
+                <div className="flex items-center gap-2 py-1 text-muted-foreground border-b border-border/40">
                   <Mail className="size-3.5 text-muted-foreground" />
                   <span className="font-medium text-foreground">{user?.email}</span>
                 </div>
@@ -193,7 +203,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2 border-b border-border/60 pb-3">
               <Building2 className="size-4 text-primary" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">
-                Company & Invoice Branding
+                Company &amp; Invoice Branding
               </h2>
             </div>
 
@@ -204,12 +214,12 @@ export default function ProfilePage() {
                   value={form.business_name}
                   onChange={(e) => setForm({ ...form, business_name: e.target.value })}
                   placeholder="e.g. Duely Studio"
-                  className="h-10 text-xs font-semibold"
+                  className={cn(underlineInputClass, "h-9 text-sm font-extrabold")}
                 />
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 pt-2">
-                {/* Company Logo */}
+                {/* Company Logo Dropzone */}
                 <div className="space-y-2">
                   <Label className="label-caps">Company Logo</Label>
                   <div className="rounded-xl border border-border bg-background p-4 flex flex-col items-center justify-center text-center space-y-3">
@@ -244,7 +254,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Signature */}
+                {/* Signature Dropzone */}
                 <div className="space-y-2">
                   <Label className="label-caps">Authorized Signature</Label>
                   <div className="rounded-xl border border-border bg-background p-4 flex flex-col items-center justify-center text-center space-y-3">
@@ -282,16 +292,16 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Section 3: Business & Invoice Settings */}
+          {/* Section 3: Business & Payment Settings */}
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-paper space-y-5">
             <div className="flex items-center gap-2 border-b border-border/60 pb-3">
               <CreditCard className="size-4 text-primary" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">
-                Business & Payment Settings
+                Business &amp; Payment Settings
               </h2>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="label-caps">Contact Email for Invoices</Label>
                 <Input
@@ -299,20 +309,20 @@ export default function ProfilePage() {
                   value={form.contact_email}
                   onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
                   placeholder="billing@example.com"
-                  className="h-9 text-xs"
+                  className={underlineInputClass}
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="label-caps">WhatsApp Sender Number</Label>
                 <div className="relative">
+                  <Phone className="size-3.5 text-muted-foreground absolute left-0 top-2.5" />
                   <Input
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     placeholder="+2348012345678"
-                    className="h-9 text-xs pl-8"
+                    className={cn(underlineInputClass, "pl-6")}
                   />
-                  <Phone className="size-3.5 text-muted-foreground absolute left-2.5 top-3" />
                 </div>
               </div>
 
@@ -323,31 +333,31 @@ export default function ProfilePage() {
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   placeholder="Street, City, Country"
-                  className="text-xs resize-none"
+                  className={underlineTextareaClass}
                 />
               </div>
 
               <div className="sm:col-span-2 space-y-1.5">
-                <Label className="label-caps">Bank & Payment Details</Label>
+                <Label className="label-caps">Bank &amp; Payment Details</Label>
                 <Textarea
                   rows={3}
                   value={form.bank_details}
                   onChange={(e) => setForm({ ...form, bank_details: e.target.value })}
                   placeholder="Bank name, account name, account number, IBAN…"
-                  className="text-xs font-mono resize-none"
+                  className={cn(underlineTextareaClass, "font-mono")}
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="label-caps">Default Currency</Label>
                 <div className="relative">
+                  <Coins className="size-3.5 text-muted-foreground absolute left-0 top-2.5" />
                   <Input
                     value={form.default_currency}
                     onChange={(e) => setForm({ ...form, default_currency: e.target.value.toUpperCase() })}
                     placeholder="NGN, USD, EUR, GBP"
-                    className="h-9 text-xs font-mono uppercase pl-8"
+                    className={cn(underlineInputClass, "pl-6 font-mono uppercase")}
                   />
-                  <Coins className="size-3.5 text-muted-foreground absolute left-2.5 top-3" />
                 </div>
               </div>
 
@@ -369,7 +379,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="pt-3 border-t border-border/60 flex justify-end">
-              <Button onClick={saveProfile} disabled={busy} size="sm" className="gap-2 font-bold text-xs">
+              <Button onClick={saveProfile} disabled={busy} size="sm" className="gap-2 font-bold text-xs cursor-pointer">
                 {busy ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                 <span>Save All Changes</span>
               </Button>
