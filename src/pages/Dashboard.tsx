@@ -207,7 +207,7 @@ export default function Dashboard() {
                       </td>
                       <td className="py-3.5 px-5 text-muted-foreground whitespace-nowrap">
                         <Link to={`/invoices/${inv.id}`} className="block">
-                          {inv.due_date}
+                          {inv.due_date || "—"}
                         </Link>
                       </td>
                       <td className="py-3.5 px-5 text-right font-mono font-bold text-foreground whitespace-nowrap">

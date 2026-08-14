@@ -7,7 +7,7 @@ import {
   Image,
   pdf,
 } from "@react-pdf/renderer";
-import { formatMoney, formatDateFormatted } from "@/lib/invoice";
+import { formatMoney, formatDateFormatted, daysOverdue } from "@/lib/invoice";
 
 export interface InvoicePDFProps {
   number: string;
@@ -28,7 +28,7 @@ export interface InvoicePDFProps {
   };
   projectName: string;
   issueDate: string;
-  dueDate: string;
+  dueDate?: string | null;
   currency: string;
   items: Array<{
     description: string;
@@ -40,7 +40,7 @@ export interface InvoicePDFProps {
   taxRate: number;
   total: number;
   paymentMethod: string;
-  isPaid: boolean;
+  isPaid?: boolean;
   notes: string;
 }
 
@@ -103,6 +103,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#FEF3C7",
     color: "#B45309",
+    fontSize: 8.5,
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase",
+  },
+  stampOverdue: {
+    marginTop: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 4,
+    backgroundColor: "#FEE2E2",
+    color: "#B91C1C",
     fontSize: 8.5,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
@@ -309,11 +320,14 @@ export function InvoicePDF({
   taxRate,
   total,
   paymentMethod,
-  isPaid,
   notes,
 }: InvoicePDFProps) {
   const displayNum = number.startsWith("#") ? number : `#${number.replace(/^INV-/, "")}`;
   const cleanNotes = (notes || "").replace(/\[(Payment Method|Project):.*?\]/g, "").trim();
+
+  // Status derived 100% from presence/absence of due date
+  const isPaid = !dueDate;
+  const isOverdue = dueDate ? daysOverdue(dueDate) > 0 : false;
 
   return (
     <Document title={`Invoice-${displayNum.replace(/^#/, "")}`}>
@@ -332,6 +346,8 @@ export function InvoicePDF({
             <Text style={styles.numberText}>NO. {displayNum}</Text>
             {isPaid ? (
               <Text style={styles.stampPaid}>● PAID</Text>
+            ) : isOverdue ? (
+              <Text style={styles.stampOverdue}>● OVERDUE</Text>
             ) : (
               <Text style={styles.stampUnpaid}>○ AWAITING PAYMENT</Text>
             )}
@@ -438,23 +454,30 @@ export function InvoicePDF({
           <Text style={styles.totalAmount}>{formatMoney(total, currency)}</Text>
         </View>
 
-        {/* 7. Footer & Instructions */}
-        <View style={styles.footerSection} wrap={false}>
-          {sender.signatureUrl ? (
-            <View style={{ marginBottom: 4 }}>
-              <Text style={styles.labelCaps}>AUTHORIZED SIGNATURE</Text>
-              <Image src={sender.signatureUrl} style={styles.signatureImage} />
-            </View>
-          ) : null}
+        {/* 7. Footer & Instructions (Conditional based on Due Date) */}
+        {(dueDate || sender.signatureUrl || cleanNotes) ? (
+          <View style={styles.footerSection} wrap={false}>
+            {sender.signatureUrl ? (
+              <View style={{ marginBottom: 4 }}>
+                <Text style={styles.labelCaps}>AUTHORIZED SIGNATURE</Text>
+                <Image src={sender.signatureUrl} style={styles.signatureImage} />
+              </View>
+            ) : null}
 
-          <Text style={styles.dueText}>Payment due by {formatDateFormatted(dueDate)}</Text>
-          <Text style={styles.instructionText}>
-            Please reference the invoice number ({displayNum}) when making payment.
-          </Text>
-          {cleanNotes ? (
-            <Text style={[styles.instructionText, { marginTop: 3 }]}>{cleanNotes}</Text>
-          ) : null}
-        </View>
+            {dueDate ? (
+              <>
+                <Text style={styles.dueText}>Payment due by {formatDateFormatted(dueDate)}</Text>
+                <Text style={styles.instructionText}>
+                  Please reference the invoice number ({displayNum}) when making payment.
+                </Text>
+              </>
+            ) : null}
+
+            {cleanNotes ? (
+              <Text style={[styles.instructionText, { marginTop: 3 }]}>{cleanNotes}</Text>
+            ) : null}
+          </View>
+        ) : null}
       </Page>
     </Document>
   );

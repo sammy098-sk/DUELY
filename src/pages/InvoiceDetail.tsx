@@ -75,13 +75,13 @@ export default function InvoiceDetail() {
   async function markPaid() {
     const { error } = await supabase
       .from("invoices")
-      .update({ status: "paid", paid_at: new Date().toISOString() })
+      .update({ status: "paid", due_date: null, paid_at: new Date().toISOString() } as any)
       .eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Marked as paid. Chasing stopped.");
+    toast.success("Marked as paid (due date cleared). Chasing stopped.");
     qc.invalidateQueries({ queryKey: ["invoice", id] });
     qc.invalidateQueries({ queryKey: ["invoices"] });
   }
@@ -111,7 +111,7 @@ export default function InvoiceDetail() {
         },
         projectName,
         issueDate: invoice.issue_date,
-        dueDate: invoice.due_date,
+        dueDate: invoice.due_date || "",
         currency: invoice.currency,
         items,
         subtotal: totals.subtotal,
@@ -188,7 +188,7 @@ export default function InvoiceDetail() {
         {/* Printable Document Surface */}
         <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-6 relative">
           
-          {/* 1. HEADER (Logo & Name on Left | Plain Static NO. #0001 & Stamp Badge on Right) */}
+          {/* 1. HEADER (Logo & Name on Left | Plain Static NO. #0001 & Derived Stamp Badge on Right) */}
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
             <div className="flex items-center gap-3">
               {profile?.company_logo_url ? (
@@ -335,31 +335,42 @@ export default function InvoiceDetail() {
             </div>
           </div>
 
-          {/* 6. SIGNATURE & PAYMENT DUE BY INSTRUCTIONS */}
-          <div className="border-t border-border pt-4 space-y-4 text-xs font-sans">
-            {profile?.signature_url && (
-              <div className="space-y-1">
-                <p className="label-caps font-bold">Authorized Signature</p>
-                <img
-                  src={profile.signature_url}
-                  alt="Signature"
-                  className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40"
-                />
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <p className="font-semibold text-foreground">
-                Payment due by <span className="font-mono font-bold">{formatDateFormatted(invoice.due_date)}</span>
-              </p>
-              <p className="text-muted-foreground font-medium">
-                Please reference the invoice number (<span className="font-mono font-bold text-foreground">{displayNum}</span>) when making payment.
-              </p>
-              {cleanNotes && (
-                <p className="text-muted-foreground whitespace-pre-line pt-1">{cleanNotes}</p>
+          {/* 6. CONDITIONAL PAYMENT DUE INSTRUCTION (ONLY rendered if invoice.due_date exists) */}
+          {invoice.due_date ? (
+            <div className="border-t border-border pt-4 space-y-4 text-xs font-sans">
+              {profile?.signature_url && (
+                <div className="space-y-1">
+                  <p className="label-caps font-bold">Authorized Signature</p>
+                  <img
+                    src={profile.signature_url}
+                    alt="Signature"
+                    className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40"
+                  />
+                </div>
               )}
+
+              <div className="space-y-1.5">
+                <p className="font-semibold text-foreground">
+                  Payment due by <span className="font-mono font-bold">{formatDateFormatted(invoice.due_date)}</span>
+                </p>
+                <p className="text-muted-foreground font-medium">
+                  Please reference the invoice number (<span className="font-mono font-bold text-foreground">{displayNum}</span>) when making payment.
+                </p>
+                {cleanNotes && (
+                  <p className="text-muted-foreground whitespace-pre-line pt-1">{cleanNotes}</p>
+                )}
+              </div>
             </div>
-          </div>
+          ) : profile?.signature_url ? (
+            <div className="border-t border-border pt-4 font-sans">
+              <p className="label-caps font-bold">Authorized Signature</p>
+              <img
+                src={profile.signature_url}
+                alt="Signature"
+                className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40 mt-1"
+              />
+            </div>
+          ) : null}
         </article>
 
         {/* Reminder History Log */}

@@ -16,7 +16,7 @@ export interface InvoiceRecord {
   client_phone: string;
   client_address: string;
   issue_date: string;
-  due_date: string;
+  due_date: string | null;
   currency: string;
   tax_rate: number;
   discount: number;
@@ -75,7 +75,7 @@ export function formatMoney(amount: number, currency = "USD"): string {
   return `${symbol}${formatted}`;
 }
 
-export function formatDateFormatted(dateStr: string): string {
+export function formatDateFormatted(dateStr: string | null): string {
   if (!dateStr) return "";
   try {
     const d = new Date(`${dateStr}T00:00:00Z`);
@@ -89,23 +89,25 @@ export function formatDateFormatted(dateStr: string): string {
   }
 }
 
-export function daysOverdue(dueDate: string) {
+export function daysOverdue(dueDate: string | null) {
+  if (!dueDate) return 0;
   const due = new Date(`${dueDate}T00:00:00Z`).getTime();
   const now = Date.now();
   return Math.floor((now - due) / 86_400_000);
 }
 
-/** Effective status: an unpaid invoice past its due date reads as overdue. */
+/** Effective status: No due date = Paid. Due date exists = Awaiting or Overdue. */
 export function effectiveStatus(inv: {
   status: string;
-  due_date: string;
+  due_date: string | null;
 }): InvoiceStatus {
-  if (inv.status === "paid") return "paid";
+  if (!inv.due_date || inv.status === "paid") return "paid";
   if (inv.status === "draft") return "draft";
   return daysOverdue(inv.due_date) > 0 ? "overdue" : "awaiting";
 }
 
-export function toneForInvoice(dueDate: string): "friendly" | "firm" | "final" {
+export function toneForInvoice(dueDate: string | null): "friendly" | "firm" | "final" {
+  if (!dueDate) return "friendly";
   const d = daysOverdue(dueDate);
   if (d <= 7) return "friendly";
   if (d <= 21) return "firm";

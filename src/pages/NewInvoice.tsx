@@ -12,6 +12,7 @@ import {
   Check,
   ChevronDown,
   Printer,
+  X,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
@@ -24,7 +25,9 @@ import {
   formatMoney,
   formatDateFormatted,
   nextInvoiceNumber,
+  daysOverdue,
   type LineItem,
+  type InvoiceStatus,
 } from "@/lib/invoice";
 import { parsePromptToInvoice, countWords, type ParsedInvoiceData } from "@/lib/aiInvoiceParser";
 import { Button } from "@/components/ui/button";
@@ -37,7 +40,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
@@ -70,12 +72,11 @@ export default function NewInvoice() {
     signatureUrl: "",
   });
   const [issueDate, setIssueDate] = useState(today());
-  const [dueDate, setDueDate] = useState(inDays(14));
+  const [dueDate, setDueDate] = useState<string>(inDays(14)); // Blank means Paid
   const [currency, setCurrency] = useState("NGN");
   const [taxRate, setTaxRate] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Bank Transfer");
-  const [isPaid, setIsPaid] = useState(false);
   const [notes, setNotes] = useState(
     "Please reference the invoice number when making payment.",
   );
@@ -85,6 +86,14 @@ export default function NewInvoice() {
 
   const [busy, setBusy] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  // Derived Payment Status: Empty due date = Paid. Due date exists = Awaiting or Overdue.
+  const currentStatus: InvoiceStatus = !dueDate
+    ? "paid"
+    : daysOverdue(dueDate) > 0
+      ? "overdue"
+      : "awaiting";
+  const isPaid = currentStatus === "paid";
 
   // Load existing profile details and next sequential invoice number
   useEffect(() => {
@@ -181,8 +190,8 @@ export default function NewInvoice() {
     setItems((prev) => prev.filter((_, idx) => idx !== i));
   }
 
-  // Save draft, paid, or issued invoice to Supabase
-  async function saveInvoice(targetStatus?: "draft" | "awaiting" | "paid") {
+  // Save draft or issued invoice to Supabase
+  async function saveInvoice(targetStatus?: "draft" | "sent") {
     if (!user) {
       toast.error("You must be logged in.");
       return;
@@ -192,7 +201,17 @@ export default function NewInvoice() {
       return;
     }
 
-    const finalStatus = targetStatus || (isPaid ? "paid" : "awaiting");
+    // Persist logic: blank due date -> status = "paid", paid_at = now, due_date = null
+    // due date exists -> status = targetStatus or "sent" / "awaiting", paid_at = null, due_date = dueDate
+    const isDraft = targetStatus === "draft";
+    const finalStatus: InvoiceStatus = isDraft
+      ? "draft"
+      : !dueDate
+        ? "paid"
+        : daysOverdue(dueDate) > 0
+          ? "overdue"
+          : "awaiting";
+
     setBusy(true);
 
     try {
@@ -208,7 +227,7 @@ export default function NewInvoice() {
           client_phone: client.phone,
           client_address: client.address,
           issue_date: issueDate,
-          due_date: dueDate,
+          due_date: dueDate || null,
           currency,
           tax_rate: taxRate,
           discount,
@@ -242,7 +261,7 @@ export default function NewInvoice() {
       if (finalStatus === "draft") {
         toast.success("Saved Draft successfully.");
       } else if (finalStatus === "paid") {
-        toast.success("Invoice saved as Paid.");
+        toast.success("Invoice saved as Paid (no due date).");
       } else {
         toast.success("Invoice sent — Duely chases payment automatically!");
       }
@@ -254,7 +273,7 @@ export default function NewInvoice() {
     }
   }
 
-  // Programmatic PDF Download using @react-pdf/renderer (NO window.print())
+  // Programmatic PDF Download using @react-pdf/renderer
   async function handleDownloadPDF() {
     if (downloadingPDF) return;
     setDownloadingPDF(true);
@@ -289,7 +308,6 @@ export default function NewInvoice() {
   // Header CTA buttons passed into AppShell header Actions slot
   const headerActions = (
     <div className="flex items-center gap-2.5">
-      {/* Save Draft & Download PDF Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -321,9 +339,8 @@ export default function NewInvoice() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Primary Action CTA: Send Invoice */}
       <Button
-        onClick={() => saveInvoice(isPaid ? "paid" : "awaiting")}
+        onClick={() => saveInvoice()}
         disabled={busy}
         size="sm"
         className="h-9 px-4 text-xs font-bold gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] transition-all shadow-xs cursor-pointer"
@@ -342,10 +359,10 @@ export default function NewInvoice() {
     <AppShell pageTitle="New Invoice" headerActions={headerActions}>
       <div className="flex-1 p-4 lg:p-6 bg-background font-sans">
         <div className="mx-auto max-w-7xl">
-          {/* TWO COLUMN DESKTOP WORKSPACE LAYOUT (40% Left / 60% Right) */}
+          {/* TWO COLUMN DESKTOP WORKSPACE LAYOUT */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* ── LEFT COLUMN: AI INVOICE GENERATOR (Col 5 / ~40%) ────────── */}
+            {/* ── LEFT COLUMN: AI INVOICE GENERATOR ────────── */}
             <div className="lg:col-span-5 space-y-4 no-print">
               <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-paper space-y-4">
                 <div>
@@ -437,13 +454,13 @@ export default function NewInvoice() {
               </div>
             </div>
 
-            {/* ── RIGHT COLUMN: LIVE INVOICE PREVIEW & DOCUMENT (Col 7 / ~60%) ── */}
+            {/* ── RIGHT COLUMN: LIVE INVOICE PREVIEW & DOCUMENT ── */}
             <div className="lg:col-span-7 space-y-4">
               
               {/* Document Container Surface */}
               <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-6 print-sheet relative">
                 
-                {/* 1. INVOICE HEADER (Logo & Name on Left | Plain Static NO. #0001 & Minimal Paid Toggle on Right) */}
+                {/* 1. INVOICE HEADER (Logo/Name on Left | Static NO. & Derived Stamp on Right) */}
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-5">
                   {/* Left: Business Logo & Business Name */}
                   <div className="flex items-center gap-3">
@@ -466,44 +483,19 @@ export default function NewInvoice() {
                     </div>
                   </div>
 
-                  {/* Right: STATIC INVOICE NUMBER & MINIMAL DOCUMENT TOGGLE */}
-                  <div className="text-right flex flex-col items-end gap-2">
-                    {/* PLAIN STATIC INVOICE NUMBER */}
+                  {/* Right: PLAIN STATIC INVOICE NUMBER & DERIVED STAMP BADGE */}
+                  <div className="text-right flex flex-col items-end gap-1.5">
                     <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-foreground">
                       <span className="text-[11px] font-bold text-muted-foreground label-caps">NO.</span>
                       <span>{number}</span>
                     </div>
 
-                    {/* MINIMAL DOCUMENT PAID/NOT PAID TOGGLE */}
-                    <button
-                      type="button"
-                      onClick={() => setIsPaid(!isPaid)}
-                      className="inline-flex items-center gap-2 text-xs font-semibold transition-colors cursor-pointer select-none no-print"
-                      title="Click to toggle Paid status"
-                    >
-                      <span
-                        className={cn(
-                          "flex size-4 items-center justify-center rounded-full border transition-all",
-                          isPaid
-                            ? "border-emerald-500 bg-emerald-500 text-neutral-950"
-                            : "border-border/80 bg-transparent text-transparent"
-                        )}
-                      >
-                        {isPaid && <Check className="size-3 stroke-[3]" />}
-                      </span>
-                      <span className={isPaid ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-muted-foreground font-medium"}>
-                        {isPaid ? "Paid" : "Not Paid"}
-                      </span>
-                    </button>
-
-                    {/* Printed Stamp Badge */}
-                    <div className="hidden print:block pt-1">
-                      <StampBadge status={isPaid ? "paid" : "awaiting"} size="sm" />
-                    </div>
+                    {/* Stamp badge derived directly from due date (No manual toggle button) */}
+                    <StampBadge status={currentStatus} size="sm" />
                   </div>
                 </div>
 
-                {/* 2. META ROW (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
+                {/* 2. META ROW (INVOICE TO | DATE | DUE DATE EDITOR) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border/70 pb-5">
                   {/* Col 1: INVOICE TO */}
                   <div className="space-y-1">
@@ -516,11 +508,34 @@ export default function NewInvoice() {
                     />
                   </div>
 
-                  {/* Col 2: DATE */}
+                  {/* Col 2: DATE & DUE DATE EDITOR (Clear due date = PAID) */}
                   <div className="space-y-1">
-                    <Label className="label-caps font-bold">DATE</Label>
-                    <div className="pt-1.5 font-mono text-xs font-bold text-foreground">
-                      {formatDateFormatted(issueDate)}
+                    <div className="flex items-center justify-between">
+                      <Label className="label-caps font-bold">DATE &amp; DUE DATE</Label>
+                    </div>
+                    <div className="pt-1 text-xs space-y-1 font-sans">
+                      <div className="font-mono font-bold text-foreground">
+                        Issued: {formatDateFormatted(issueDate)}
+                      </div>
+                      <div className="flex items-center gap-1.5 no-print pt-0.5">
+                        <span className="text-muted-foreground text-[11px]">Due:</span>
+                        <input
+                          type="date"
+                          value={dueDate}
+                          onChange={(e) => setDueDate(e.target.value)}
+                          className="font-mono text-xs font-semibold text-foreground bg-transparent border-0 border-b border-border/60 p-0 outline-none cursor-pointer"
+                        />
+                        {dueDate && (
+                          <button
+                            type="button"
+                            onClick={() => setDueDate("")}
+                            title="Clear due date to mark as Paid"
+                            className="text-muted-foreground hover:text-foreground cursor-pointer text-[10px] uppercase font-bold tracking-wider px-1 bg-muted rounded"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -572,7 +587,7 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 4. LINE ITEMS TABLE (NO INTERNAL SCROLLBAR, NATURAL UNCLIPPED HEIGHT) */}
+                {/* 4. LINE ITEMS TABLE (No internal scrollbars, natural unclipped height) */}
                 <div className="space-y-4 pt-2">
                   <table className="w-full text-xs border-collapse">
                     <thead>
@@ -587,7 +602,6 @@ export default function NewInvoice() {
                     <tbody className="divide-y divide-border/50">
                       {items.map((item, idx) => (
                         <tr key={idx} className="group align-top">
-                          {/* Item Description Column — WRAPPING, NO TRUNCATION */}
                           <td className="py-3 pr-3 text-left">
                             <Textarea
                               rows={2}
@@ -597,7 +611,6 @@ export default function NewInvoice() {
                               className="w-full text-xs font-medium border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0 focus:border-emerald-500 resize-none whitespace-normal overflow-wrap-anywhere break-words leading-relaxed font-sans"
                             />
                           </td>
-                          {/* Price Column */}
                           <td className="py-3 px-1 text-right">
                             <Input
                               type="number"
@@ -607,7 +620,6 @@ export default function NewInvoice() {
                               className="h-8 text-xs font-mono font-medium text-right border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0"
                             />
                           </td>
-                          {/* Qty Column */}
                           <td className="py-3 px-1 text-right">
                             <Input
                               type="number"
@@ -617,11 +629,9 @@ export default function NewInvoice() {
                               className="h-8 text-xs font-mono font-medium text-right border-0 border-b border-border/40 rounded-none bg-transparent p-0 shadow-none focus-visible:ring-0"
                             />
                           </td>
-                          {/* Line Total Column */}
                           <td className="py-3 pl-2 text-right font-mono font-bold text-foreground whitespace-nowrap pt-3">
                             {formatMoney(Number(item.quantity) * Number(item.unit_price), currency)}
                           </td>
-                          {/* Delete Line Action */}
                           <td className="py-3 text-right no-print pt-2.5">
                             <Button
                               type="button"
@@ -639,7 +649,6 @@ export default function NewInvoice() {
                     </tbody>
                   </table>
 
-                  {/* + ADD ITEM BUTTON */}
                   <div className="pt-1 mb-6">
                     <Button
                       type="button"
@@ -657,7 +666,6 @@ export default function NewInvoice() {
                 {/* 5. PAYMENT METHOD, BANK DETAILS & REPOSITIONED INVOICE TOTAL */}
                 <div className="space-y-6 pt-4 border-t border-border/80">
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start font-sans">
-                    {/* Left: Editable Payment Method & Read-Only Bank Details */}
                     <div className="sm:col-span-7 space-y-2">
                       <Label className="label-caps font-bold">Payment Method</Label>
                       <Input
@@ -675,7 +683,6 @@ export default function NewInvoice() {
                       </div>
                     </div>
 
-                    {/* Right: Subtotal, Discount, Tax */}
                     <div className="sm:col-span-5 space-y-2 text-xs text-right font-sans">
                       <div className="flex justify-between items-center text-muted-foreground">
                         <span>Subtotal</span>
@@ -712,7 +719,6 @@ export default function NewInvoice() {
                     </div>
                   </div>
 
-                  {/* REPOSITIONED INVOICE TOTAL */}
                   <div className="border-t border-b border-border/80 py-3.5 flex justify-between items-baseline font-bold bg-muted/20 px-4 rounded-xl">
                     <span className="text-sm text-foreground uppercase tracking-wider font-extrabold font-sans">
                       Invoice Total
@@ -723,36 +729,39 @@ export default function NewInvoice() {
                   </div>
                 </div>
 
-                {/* 6. PAYMENT DUE BY & FIXED INSTRUCTION TEXT */}
-                <div className="border-t border-border/70 pt-4 space-y-4 font-sans">
-                  {/* Authorized Signature (if uploaded in Profile/Settings) */}
-                  {sender.signatureUrl && (
-                    <div className="space-y-1">
-                      <Label className="label-caps font-bold">Authorized Signature</Label>
-                      <img
-                        src={sender.signatureUrl}
-                        alt="Signature"
-                        className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40"
-                      />
-                    </div>
-                  )}
+                {/* 6. CONDITIONAL PAYMENT DUE INSTRUCTION (ONLY rendered if dueDate exists) */}
+                {dueDate ? (
+                  <div className="border-t border-border/70 pt-4 space-y-4 font-sans">
+                    {sender.signatureUrl && (
+                      <div className="space-y-1">
+                        <Label className="label-caps font-bold">Authorized Signature</Label>
+                        <img
+                          src={sender.signatureUrl}
+                          alt="Signature"
+                          className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40"
+                        />
+                      </div>
+                    )}
 
-                  {/* Payment Instruction & Due Date */}
-                  <div className="text-xs space-y-2">
-                    <div className="flex flex-wrap items-center gap-2 text-foreground font-semibold">
-                      <span>Payment due by</span>
-                      <input
-                        type="date"
-                        value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
-                        className="font-mono font-bold text-foreground bg-transparent border-0 border-b border-border/60 px-1 py-0.5 outline-none cursor-pointer"
-                      />
+                    <div className="text-xs space-y-2">
+                      <p className="font-semibold text-foreground">
+                        Payment due by <span className="font-mono font-bold">{formatDateFormatted(dueDate)}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Please reference the invoice number (<span className="font-mono font-bold text-foreground">{number}</span>) when making payment.
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      Please reference the invoice number (<span className="font-mono font-bold text-foreground">{number}</span>) when making payment.
-                    </p>
                   </div>
-                </div>
+                ) : sender.signatureUrl ? (
+                  <div className="border-t border-border/70 pt-4 font-sans">
+                    <Label className="label-caps font-bold">Authorized Signature</Label>
+                    <img
+                      src={sender.signatureUrl}
+                      alt="Signature"
+                      className="max-h-14 w-auto object-contain rounded bg-card p-1 border border-border/40 mt-1"
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
