@@ -3,17 +3,17 @@ import { cn } from "@/lib/utils";
 
 interface DuelyFooterProps {
   isDark?: boolean;
-  context?: "landing" | "authenticated";
+  context?: "landing" | "welcome" | "authenticated";
 }
 
 export function DuelyFooter({ isDark = false, context = "landing" }: DuelyFooterProps) {
-  const isAuthenticated = context === "authenticated";
+  const isWelcome = context === "welcome" || context === "authenticated";
 
   const companyLinks = {
-    about: isAuthenticated ? "/app/about" : "/about",
-    contact: isAuthenticated ? "/app/contact" : "/contact",
-    terms: isAuthenticated ? "/app/terms" : "/terms",
-    privacy: isAuthenticated ? "/app/privacy" : "/privacy",
+    about: isWelcome ? "/app/about" : "/about",
+    contact: isWelcome ? "/app/contact" : "/contact",
+    terms: isWelcome ? "/app/terms" : "/terms",
+    privacy: isWelcome ? "/app/privacy" : "/privacy",
   };
 
   return (
@@ -26,7 +26,7 @@ export function DuelyFooter({ isDark = false, context = "landing" }: DuelyFooter
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6">
         {/* Left Side: Brand Wordmark & Tagline */}
         <div className="md:col-span-5 space-y-3">
-          <Link to={isAuthenticated ? "/welcome" : "/"} className="inline-block">
+          <Link to={isWelcome ? "/welcome" : "/"} className="inline-block">
             <span className="font-serif italic text-2xl font-extrabold tracking-tight">
               Duely
             </span>

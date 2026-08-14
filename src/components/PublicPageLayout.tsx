@@ -84,7 +84,7 @@ export function PublicPageLayout({
       </main>
 
       {/* Reusable Shared Footer */}
-      <DuelyFooter isDark={isDark} />
+      <DuelyFooter isDark={isDark} context="landing" />
     </div>
   );
 }
