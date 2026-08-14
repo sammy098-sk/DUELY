@@ -10,6 +10,9 @@ import {
   Sparkles,
   Send,
   X,
+  Zap,
+  MessageCircle,
+  Shield,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
@@ -96,7 +99,7 @@ export function DuelyHero({ context }: DuelyHeroProps) {
       {/* Main Hero Container */}
       <div
         className={cn(
-          "relative z-10 mx-auto max-w-5xl px-4 sm:px-6 text-center space-y-8",
+          "relative z-10 mx-auto max-w-6xl px-4 sm:px-6 text-center space-y-12 sm:space-y-16",
           isLanding ? "pt-8 sm:pt-12 pb-16" : "py-8 sm:py-12"
         )}
       >
@@ -206,10 +209,10 @@ export function DuelyHero({ context }: DuelyHeroProps) {
           )}
         </div>
 
-        {/* 5. STATIC PRODUCT MOCKUP (JSX Decorative Representation Only - No iFrame) */}
+        {/* 5. STATIC PRODUCT MOCKUP */}
         <InvoicePreviewMockup isDark={isDark} />
 
-        {/* 7. WORKS-WHERE-YOUR-CLIENTS-ARE INTEGRATION STRIP */}
+        {/* 6. WORKS-WHERE-YOUR-CLIENTS-ARE INTEGRATION STRIP */}
         <div
           className={cn(
             "animate-hero-fade pt-8 space-y-4 border-t",
@@ -250,6 +253,319 @@ export function DuelyHero({ context }: DuelyHeroProps) {
             </div>
           </div>
         </div>
+
+        {/* 7. NEW FEATURES SECTION */}
+        <section className="pt-16 sm:pt-24 space-y-12 text-left">
+          {/* Section Header */}
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <h2
+              className={cn(
+                "text-3xl sm:text-4xl font-extrabold tracking-tight font-serif",
+                isLanding ? (isDark ? "text-white" : "text-slate-900") : "text-foreground"
+              )}
+            >
+              Everything you need to get paid
+            </h2>
+            <p
+              className={cn(
+                "text-sm sm:text-base leading-relaxed font-sans",
+                isLanding ? (isDark ? "text-neutral-400" : "text-slate-600") : "text-muted-foreground"
+              )}
+            >
+              Create, send, and track invoices without living in your inbox.
+            </p>
+          </div>
+
+          {/* Balanced 2-Column Desktop Grid (Visual on Left, 3 Feature Items on Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Left 50% Column: Feature Visual Mockup */}
+            <div className="lg:col-span-6">
+              <InvoicePreviewMockup isDark={isDark} variant="feature" />
+            </div>
+
+            {/* Right 50% Column: 3 Feature Items */}
+            <div className="lg:col-span-6 space-y-8">
+              {/* Feature Item 1: Automated Reminders */}
+              <div className="flex items-start gap-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 mt-0.5">
+                  <Zap className="size-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3
+                    className={cn(
+                      "text-base font-bold font-sans",
+                      isLanding ? (isDark ? "text-white" : "text-slate-900") : "text-foreground"
+                    )}
+                  >
+                    Automated reminders
+                  </h3>
+                  <p
+                    className={cn(
+                      "text-xs sm:text-sm leading-relaxed font-sans",
+                      isLanding ? (isDark ? "text-neutral-400" : "text-slate-600") : "text-muted-foreground"
+                    )}
+                  >
+                    Every unpaid invoice gets chased for you, every 3 days, until it's paid.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature Item 2: AI-Drafted, Always On-Brand */}
+              <div className="flex items-start gap-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 mt-0.5">
+                  <MessageCircle className="size-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3
+                    className={cn(
+                      "text-base font-bold font-sans",
+                      isLanding ? (isDark ? "text-white" : "text-slate-900") : "text-foreground"
+                    )}
+                  >
+                    AI-drafted, always on-brand
+                  </h3>
+                  <p
+                    className={cn(
+                      "text-xs sm:text-sm leading-relaxed font-sans",
+                      isLanding ? (isDark ? "text-neutral-400" : "text-slate-600") : "text-muted-foreground"
+                    )}
+                  >
+                    Reminders escalate automatically — friendly first, then firm, then final notice.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature Item 3: Built for Freelancers */}
+              <div className="flex items-start gap-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 mt-0.5">
+                  <Shield className="size-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3
+                    className={cn(
+                      "text-base font-bold font-sans",
+                      isLanding ? (isDark ? "text-white" : "text-slate-900") : "text-foreground"
+                    )}
+                  >
+                    Built for freelancers
+                  </h3>
+                  <p
+                    className={cn(
+                      "text-xs sm:text-sm leading-relaxed font-sans",
+                      isLanding ? (isDark ? "text-neutral-400" : "text-slate-600") : "text-muted-foreground"
+                    )}
+                  >
+                    No accounting degree required. Create and send an invoice in under a minute.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 8. NEW CTA BANNER */}
+        <section className="pt-12 sm:pt-16">
+          <div
+            className={cn(
+              "rounded-3xl border p-8 sm:p-12 text-center max-w-4xl mx-auto shadow-xl space-y-5 relative overflow-hidden",
+              isDark
+                ? "border-emerald-500/30 bg-neutral-900/90 text-white"
+                : "border-slate-300 bg-white text-slate-900"
+            )}
+          >
+            {/* Subtle Inner Glow */}
+            <div className="pointer-events-none absolute -right-12 -top-12 size-56 rounded-full bg-emerald-500/15 blur-3xl" />
+
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-serif">
+              Start invoicing for free
+            </h3>
+            <p
+              className={cn(
+                "mx-auto max-w-xl text-xs sm:text-sm leading-relaxed font-sans",
+                isDark ? "text-neutral-400" : "text-slate-600"
+              )}
+            >
+              Create your first invoice, automate your follow-ups, and spend less time chasing payments.
+            </p>
+            <div className="pt-2">
+              {isLanding ? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-11 px-7 rounded-xl font-extrabold text-xs gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md cursor-pointer"
+                >
+                  <Link to="/auth?mode=signup">
+                    <span>Get started free</span>
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-11 px-7 rounded-xl font-extrabold text-xs gap-2 bg-emerald-500 text-neutral-950 hover:bg-emerald-400 transition-all shadow-md cursor-pointer"
+                >
+                  <Link to="/dashboard">
+                    <span>Go to Dashboard</span>
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 9. MINIMAL FOOTER */}
+        <footer
+          className={cn(
+            "pt-16 sm:pt-24 space-y-12 border-t text-left",
+            isDark ? "border-white/10" : "border-slate-200"
+          )}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+            {/* Left Side: Brand Wordmark & Tagline */}
+            <div className="md:col-span-5 space-y-3">
+              <Link to="/" className="inline-block">
+                <span className="font-serif italic text-2xl font-extrabold tracking-tight">
+                  Duely
+                </span>
+              </Link>
+              <p
+                className={cn(
+                  "text-xs leading-relaxed max-w-xs font-sans",
+                  isDark ? "text-neutral-400" : "text-slate-600"
+                )}
+              >
+                Invoices that chase payment for you.
+              </p>
+            </div>
+
+            {/* Right Side: 3 Navigation Columns */}
+            <div className="md:col-span-7 grid grid-cols-3 gap-6 text-xs font-sans">
+              {/* Col 1: Product */}
+              <div className="space-y-3">
+                <p className="font-extrabold text-[11px] uppercase tracking-wider text-emerald-500">
+                  Product
+                </p>
+                <ul className="space-y-2">
+                  <li>
+                    <Link
+                      to="/dashboard"
+                      className={cn(
+                        "transition-colors",
+                        isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
+                      )}
+                    >
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/invoices/new"
+                      className={cn(
+                        "transition-colors",
+                        isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
+                      )}
+                    >
+                      New Invoice
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/invoices"
+                      className={cn(
+                        "transition-colors",
+                        isDark ? "text-neutral-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
+                      )}
+                    >
+                      Clients
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Col 2: Company */}
+              <div className="space-y-3">
+                <p className="font-extrabold text-[11px] uppercase tracking-wider text-emerald-500">
+                  Company
+                </p>
+                <ul className="space-y-2">
+                  <li>
+                    <a
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                      className={cn(
+                        "transition-colors cursor-default",
+                        isDark ? "text-neutral-400" : "text-slate-500"
+                      )}
+                    >
+                      About
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                      className={cn(
+                        "transition-colors cursor-default",
+                        isDark ? "text-neutral-400" : "text-slate-500"
+                      )}
+                    >
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Col 3: Legal */}
+              <div className="space-y-3">
+                <p className="font-extrabold text-[11px] uppercase tracking-wider text-emerald-500">
+                  Legal
+                </p>
+                <ul className="space-y-2">
+                  <li>
+                    <a
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                      className={cn(
+                        "transition-colors cursor-default",
+                        isDark ? "text-neutral-400" : "text-slate-500"
+                      )}
+                    >
+                      Terms of Use
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                      className={cn(
+                        "transition-colors cursor-default",
+                        isDark ? "text-neutral-400" : "text-slate-500"
+                      )}
+                    >
+                      Privacy Policy
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Copyright Divider & Bottom Text */}
+          <div
+            className={cn(
+              "pt-8 border-t flex items-center justify-between text-xs font-sans",
+              isDark ? "border-white/10 text-neutral-500" : "border-slate-200 text-slate-500"
+            )}
+          >
+            <p>© 2026 Duely — All rights reserved.</p>
+            <div className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-emerald-500" />
+              <span className="text-[11px]">Systems Operational</span>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* Demo Modal (when clicking Watch Demo) */}
@@ -281,16 +597,25 @@ export function DuelyHero({ context }: DuelyHeroProps) {
 }
 
 /* ── ISOLATED STATIC PRODUCT PREVIEW MOCKUP (No iframe, No live app state) ── */
-function InvoicePreviewMockup({ isDark }: { isDark: boolean }) {
+function InvoicePreviewMockup({
+  isDark,
+  variant = "hero",
+}: {
+  isDark: boolean;
+  variant?: "hero" | "feature";
+}) {
+  const isFeature = variant === "feature";
+
   return (
     <div
       className={cn(
-        "animate-hero-fade relative mt-8 sm:mt-12 rounded-2xl border shadow-2xl p-2 sm:p-3 text-left transition-colors h-auto",
+        "animate-hero-fade relative rounded-2xl border shadow-2xl p-2 sm:p-3 text-left transition-colors h-auto",
+        isFeature ? "mt-0 scale-[0.98]" : "mt-8 sm:mt-12",
         isDark
           ? "border-white/15 bg-neutral-900/90"
           : "border-slate-200 bg-white/90 shadow-xl"
       )}
-      style={{ animationDelay: "300ms" }}
+      style={{ animationDelay: isFeature ? "0ms" : "300ms" }}
     >
       {/* macOS Browser Chrome Controls Bar */}
       <div
@@ -410,49 +735,51 @@ function InvoicePreviewMockup({ isDark }: { isDark: boolean }) {
         </div>
       </div>
 
-      {/* Floating Product Stat Cards */}
-      {/* Floating Card 1: Bottom Left */}
-      <div
-        className={cn(
-          "absolute bottom-3 left-4 sm:bottom-4 sm:left-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md flex items-center gap-3",
-          isDark
-            ? "border-emerald-500/30 bg-neutral-900/95 text-white"
-            : "border-emerald-500/30 bg-white/95 text-slate-900"
-        )}
-      >
-        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500">
-          <CheckCircle2 className="size-4" />
-        </div>
-        <div>
-          <p className="text-xs font-bold flex items-center gap-1">
-            <span>Reminder sent</span>
-          </p>
-          <p className={cn("text-[10px]", isDark ? "text-neutral-400" : "text-slate-500")}>
-            3 invoices followed up via WhatsApp
-          </p>
-        </div>
-      </div>
+      {/* Floating Product Stat Cards (Hero Only) */}
+      {!isFeature && (
+        <>
+          <div
+            className={cn(
+              "absolute bottom-3 left-4 sm:bottom-4 sm:left-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md flex items-center gap-3",
+              isDark
+                ? "border-emerald-500/30 bg-neutral-900/95 text-white"
+                : "border-emerald-500/30 bg-white/95 text-slate-900"
+            )}
+          >
+            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500">
+              <CheckCircle2 className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold flex items-center gap-1">
+                <span>Reminder sent</span>
+              </p>
+              <p className={cn("text-[10px]", isDark ? "text-neutral-400" : "text-slate-500")}>
+                3 invoices followed up via WhatsApp
+              </p>
+            </div>
+          </div>
 
-      {/* Floating Card 2: Bottom Right */}
-      <div
-        className={cn(
-          "hidden sm:flex absolute bottom-4 right-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md items-center gap-3",
-          isDark
-            ? "border-emerald-500/30 bg-neutral-900/95 text-white"
-            : "border-emerald-500/30 bg-white/95 text-slate-900"
-        )}
-      >
-        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500 font-bold text-xs">
-          ₦
-        </div>
-        <div>
-          <p className="text-xs font-mono font-extrabold">₦1.2M collected</p>
-          <p className={cn("text-[10px] flex items-center gap-1", isDark ? "text-neutral-400" : "text-slate-500")}>
-            <TrendingUp className="size-3 text-emerald-500" />
-            <span>+24% this month</span>
-          </p>
-        </div>
-      </div>
+          <div
+            className={cn(
+              "hidden sm:flex absolute bottom-4 right-6 rounded-xl border p-3 text-left shadow-xl backdrop-blur-md items-center gap-3",
+              isDark
+                ? "border-emerald-500/30 bg-neutral-900/95 text-white"
+                : "border-emerald-500/30 bg-white/95 text-slate-900"
+            )}
+          >
+            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-500 font-bold text-xs">
+              ₦
+            </div>
+            <div>
+              <p className="text-xs font-mono font-extrabold">₦1.2M collected</p>
+              <p className={cn("text-[10px] flex items-center gap-1", isDark ? "text-neutral-400" : "text-slate-500")}>
+                <TrendingUp className="size-3 text-emerald-500" />
+                <span>+24% this month</span>
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
