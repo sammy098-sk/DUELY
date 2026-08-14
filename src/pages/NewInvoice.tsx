@@ -441,10 +441,10 @@ export default function NewInvoice() {
             <div className="lg:col-span-7 space-y-4">
               
               {/* Document Container Surface */}
-              <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-8 print-sheet relative">
+              <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-6 print-sheet relative">
                 
                 {/* 1. INVOICE HEADER (Logo & Name on Left | Plain Static NO. #0001 & Minimal Paid Toggle on Right) */}
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-6">
+                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-5">
                   {/* Left: Business Logo & Business Name */}
                   <div className="flex items-center gap-3">
                     {sender.companyLogoUrl ? (
@@ -504,7 +504,7 @@ export default function NewInvoice() {
                 </div>
 
                 {/* 2. META ROW (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border/70 pb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border/70 pb-5">
                   {/* Col 1: INVOICE TO */}
                   <div className="space-y-1">
                     <Label className="label-caps font-bold">INVOICE TO</Label>

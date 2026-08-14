@@ -186,10 +186,10 @@ export default function InvoiceDetail() {
         </div>
 
         {/* Printable Document Surface */}
-        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-8 relative">
+        <article className="ledger-panel print-sheet p-8 sm:p-10 space-y-6 relative">
           
           {/* 1. HEADER (Logo & Name on Left | Plain Static NO. #0001 & Stamp Badge on Right) */}
-          <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+          <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
             <div className="flex items-center gap-3">
               {profile?.company_logo_url ? (
                 <img
@@ -220,7 +220,7 @@ export default function InvoiceDetail() {
           </header>
 
           {/* 2. META ROW (3 Columns: INVOICE TO | DATE | PROJECT NAME) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-6 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-5 text-xs">
             <div className="space-y-1 font-sans">
               <span className="label-caps font-bold">INVOICE TO</span>
               <p className="font-extrabold text-sm text-foreground">{invoice.client_name}</p>

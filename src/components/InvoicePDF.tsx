@@ -58,16 +58,16 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
-    paddingBottom: 16,
-    marginBottom: 16,
+    paddingBottom: 12,
+    marginBottom: 12,
   },
   logo: {
-    height: 40,
+    height: 38,
     width: "auto",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   companyName: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
     color: "#0F172A",
@@ -81,29 +81,29 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   numberText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Helvetica-Bold",
     color: "#0F172A",
   },
   stampPaid: {
-    marginTop: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    marginTop: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     borderRadius: 4,
     backgroundColor: "#DCFCE7",
     color: "#15803D",
-    fontSize: 9,
+    fontSize: 8.5,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
   },
   stampUnpaid: {
-    marginTop: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    marginTop: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     borderRadius: 4,
     backgroundColor: "#FEF3C7",
     color: "#B45309",
-    fontSize: 9,
+    fontSize: 8.5,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
   },
@@ -112,8 +112,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
-    paddingBottom: 12,
-    marginBottom: 16,
+    paddingBottom: 10,
+    marginBottom: 12,
   },
   metaCol: {
     width: "32%",
@@ -123,17 +123,20 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     color: "#64748B",
     textTransform: "uppercase",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   metaValue: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontFamily: "Helvetica-Bold",
     color: "#0F172A",
   },
   billedRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    paddingBottom: 12,
+    marginBottom: 14,
   },
   billedCol: {
     width: "48%",
@@ -141,18 +144,18 @@ const styles = StyleSheet.create({
   addressText: {
     fontSize: 9,
     color: "#475569",
-    lineHeight: 1.4,
+    lineHeight: 1.35,
   },
   table: {
     width: "100%",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   tableHeader: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#CBD5E1",
-    paddingBottom: 6,
-    marginBottom: 6,
+    paddingBottom: 5,
+    marginBottom: 5,
   },
   thItem: {
     width: "55%",
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 0.5,
     borderBottomColor: "#F1F5F9",
-    paddingVertical: 6,
+    paddingVertical: 5,
     alignItems: "flex-start",
   },
   tdItem: {
@@ -222,8 +225,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
-    paddingTop: 14,
-    marginBottom: 14,
+    paddingTop: 12,
+    marginBottom: 12,
   },
   paymentLeft: {
     width: "55%",
@@ -255,29 +258,29 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     borderRadius: 6,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
+    paddingVertical: 8,
+    marginBottom: 14,
   },
   totalLabel: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
     color: "#0F172A",
   },
   totalAmount: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Helvetica-Bold",
     color: "#0F172A",
   },
   footerSection: {
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
-    paddingTop: 12,
+    paddingTop: 10,
   },
   signatureImage: {
-    height: 36,
+    height: 32,
     width: "auto",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   dueText: {
     fontSize: 9,
@@ -355,7 +358,7 @@ export function InvoicePDF({
         <View style={styles.billedRow}>
           <View style={styles.billedCol}>
             <Text style={styles.labelCaps}>BILLED TO</Text>
-            <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
+            <Text style={{ fontSize: 9.5, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
               {client.name || "Client Name"}
             </Text>
             <Text style={styles.addressText}>{client.address}</Text>
@@ -364,7 +367,7 @@ export function InvoicePDF({
           </View>
           <View style={styles.billedCol}>
             <Text style={styles.labelCaps}>FROM</Text>
-            <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
+            <Text style={{ fontSize: 9.5, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
               {sender.name}
             </Text>
             <Text style={styles.addressText}>{sender.email}</Text>
@@ -397,7 +400,7 @@ export function InvoicePDF({
         <View style={styles.paymentSection} wrap={false}>
           <View style={styles.paymentLeft}>
             <Text style={styles.labelCaps}>PAYMENT METHOD</Text>
-            <Text style={{ fontSize: 9.5, fontFamily: "Helvetica-Bold", marginBottom: 6 }}>
+            <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", marginBottom: 5 }}>
               {paymentMethod || "Bank Transfer"}
             </Text>
             {sender.bankDetails ? (
@@ -438,7 +441,7 @@ export function InvoicePDF({
         {/* 7. Footer & Instructions */}
         <View style={styles.footerSection} wrap={false}>
           {sender.signatureUrl ? (
-            <View style={{ marginBottom: 6 }}>
+            <View style={{ marginBottom: 4 }}>
               <Text style={styles.labelCaps}>AUTHORIZED SIGNATURE</Text>
               <Image src={sender.signatureUrl} style={styles.signatureImage} />
             </View>
@@ -449,7 +452,7 @@ export function InvoicePDF({
             Please reference the invoice number ({displayNum}) when making payment.
           </Text>
           {cleanNotes ? (
-            <Text style={[styles.instructionText, { marginTop: 4 }]}>{cleanNotes}</Text>
+            <Text style={[styles.instructionText, { marginTop: 3 }]}>{cleanNotes}</Text>
           ) : null}
         </View>
       </Page>
