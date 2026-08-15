@@ -64,7 +64,7 @@ export type Database = {
           created_at: string
           currency: string
           discount: number
-          due_date: string
+          due_date: string | null
           id: string
           issue_date: string
           last_reminder_at: string | null
@@ -87,7 +87,7 @@ export type Database = {
           created_at?: string
           currency?: string
           discount?: number
-          due_date?: string
+          due_date?: string | null
           id?: string
           issue_date?: string
           last_reminder_at?: string | null
@@ -110,7 +110,7 @@ export type Database = {
           created_at?: string
           currency?: string
           discount?: number
-          due_date?: string
+          due_date?: string | null
           id?: string
           issue_date?: string
           last_reminder_at?: string | null

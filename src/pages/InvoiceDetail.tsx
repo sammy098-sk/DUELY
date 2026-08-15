@@ -71,15 +71,34 @@ export default function InvoiceDetail() {
     : `#${invoice.number.replace(/^INV-/, "")}`;
 
   async function markPaid() {
+    if (!id) return;
+    const payload = {
+      status: "paid",
+      due_date: null,
+      paid_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log("Marking invoice as paid:", { invoiceId: id, payload });
+
     const { error } = await supabase
       .from("invoices")
-      .update({ status: "paid", due_date: null, paid_at: new Date().toISOString() } as any)
+      .update(payload)
       .eq("id", id);
+
     if (error) {
-      toast.error(error.message);
+      console.error("Failed to mark invoice as paid:", {
+        error,
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      toast.error(`Failed to update invoice: ${error.message}`);
       return;
     }
-    toast.success("Marked as paid (due date cleared). Chasing stopped.");
+
+    toast.success("Invoice marked as paid. Due date cleared.");
     qc.invalidateQueries({ queryKey: ["invoice", id] });
     qc.invalidateQueries({ queryKey: ["invoices"] });
   }
@@ -109,7 +128,7 @@ export default function InvoiceDetail() {
         },
         projectName,
         issueDate: invoice.issue_date,
-        dueDate: invoice.due_date || "",
+        dueDate: invoice.due_date,
         currency: invoice.currency,
         items,
         subtotal: totals.subtotal,
@@ -120,29 +139,53 @@ export default function InvoiceDetail() {
         notes: cleanNotes,
       });
       toast.success("Invoice PDF downloaded!");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to generate PDF");
+    } catch (err: any) {
+      console.error("PDF generation error:", err);
+      toast.error(`Failed to generate PDF: ${err?.message || "Unknown error"}`);
     } finally {
       setDownloadingPDF(false);
     }
   }
 
   async function chase() {
+    if (!id) return;
+    if (status === "paid" || invoice.due_date === null) {
+      toast.error("Reminders cannot be sent for paid invoices.");
+      return;
+    }
+
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("run-reminders", {
         body: { invoiceId: id },
       });
-      if (error) throw error;
-      const failed = data.channels.filter((c: any) => c.status === "failed");
-      if (failed.length === data.channels.length) {
-        toast.error(`Draft written but not delivered: ${failed[0]?.error ?? "no channel"}`);
-      } else {
-        toast.success(`${data.tone} reminder sent.`);
+
+      if (error) {
+        console.error("Send reminder error:", {
+          error,
+          message: error.message,
+          name: error.name,
+        });
+        toast.error(`Failed to send reminder: ${error.message || "Edge Function error"}`);
+        return;
       }
+
+      if (data && data.channels) {
+        const failed = data.channels.filter((c: any) => c.status === "failed");
+        if (failed.length === data.channels.length) {
+          toast.error(`Reminder drafted but delivery failed: ${failed[0]?.error ?? "No active communication channel"}`);
+        } else {
+          toast.success(`${data.tone ? data.tone.toUpperCase() : "Payment"} reminder sent successfully.`);
+        }
+      } else {
+        toast.success("Reminder sent successfully.");
+      }
+
       qc.invalidateQueries({ queryKey: ["invoice", id] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Reminder failed");
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+    } catch (err: any) {
+      console.error("Unexpected error during reminder send:", err);
+      toast.error(`Failed to send reminder: ${err?.message || "Network or server error"}`);
     } finally {
       setSending(false);
     }
