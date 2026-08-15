@@ -14,6 +14,7 @@ import {
   Printer,
   Calendar,
   X,
+  FileText,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
@@ -56,12 +57,12 @@ export default function NewInvoice() {
 
   // Invoice Data State
   const [number, setNumber] = useState("#0001");
-  const [projectName, setProjectName] = useState("Website Redesign");
+  const [projectName, setProjectName] = useState("");
   const [client, setClient] = useState({
-    name: "Acme Studio",
-    email: "billing@acmestudio.com",
-    phone: "+234 801 234 5678",
-    address: "Lagos, Nigeria",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   });
   const [sender, setSender] = useState({
     name: "Duely Studio",
@@ -73,7 +74,7 @@ export default function NewInvoice() {
     signatureUrl: "",
   });
   const [issueDate, setIssueDate] = useState(today());
-  const [dueDate, setDueDate] = useState<string>(inDays(14)); // Blank means Paid (no due date line)
+  const [dueDate, setDueDate] = useState<string>(""); // Blank means Paid / default
   const [currency, setCurrency] = useState("NGN");
   const [taxRate, setTaxRate] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -81,9 +82,7 @@ export default function NewInvoice() {
   const [notes, setNotes] = useState(
     "Please reference the invoice number when making payment.",
   );
-  const [items, setItems] = useState<LineItem[]>([
-    { description: "Website Design & Development for Acme Studio", quantity: 1, unit_price: 420000 },
-  ]);
+  const [items, setItems] = useState<LineItem[]>([]);
 
   const [busy, setBusy] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -129,6 +128,14 @@ export default function NewInvoice() {
 
   const totals = computeTotals(items, taxRate, discount);
   const wordCount = countWords(prompt);
+
+  const hasMeaningfulInvoiceData = Boolean(
+    client.name.trim() &&
+      items.length > 0 &&
+      items.some(
+        (it) => it.description.trim() && Number(it.quantity) > 0 && Number(it.unit_price) > 0
+      )
+  );
 
   // Handle AI prompt generation via Edge Function & strict validation
   async function handleGeneratePrompt() {
@@ -261,17 +268,17 @@ export default function NewInvoice() {
         });
       }
 
+      console.log("[parse-invoice-prompt response]", parsedResult);
+
       if (parsedResult.items && parsedResult.items.length > 0) {
         setItems(parsedResult.items);
       }
 
-      const explicitProj = parsedResult.project_name ? String(parsedResult.project_name).trim() : null;
-      const itemDesc = parsedResult.items?.[0]?.description ? String(parsedResult.items[0].description).trim() : null;
-
-      if (explicitProj) {
-        setProjectName(toTitleCase(explicitProj));
-      } else if (itemDesc) {
-        setProjectName(toTitleCase(itemDesc));
+      // Do NOT populate Project Name from client_name, items[0].description, or raw prompt unless project_name is explicitly returned!
+      if (parsedResult.project_name) {
+        setProjectName(toTitleCase(String(parsedResult.project_name).trim()));
+      } else {
+        setProjectName("");
       }
 
       if (parsedResult.due_date) {
@@ -567,9 +574,21 @@ export default function NewInvoice() {
 
             {/* ── RIGHT COLUMN: LIVE INVOICE PREVIEW & DOCUMENT ── */}
             <div className="lg:col-span-7 space-y-4">
-              
-              {/* Document Container Surface */}
-              <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-6 print-sheet relative">
+              {!hasMeaningfulInvoiceData ? (
+                <div className="rounded-2xl border border-dashed border-border/80 bg-card/50 p-10 sm:p-14 text-center flex flex-col items-center justify-center min-h-[440px] space-y-3">
+                  <div className="size-12 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground mb-1 shadow-2xs">
+                    <FileText className="size-6" />
+                  </div>
+                  <h3 className="font-extrabold text-sm text-foreground font-sans">
+                    Your invoice preview will appear here once you generate it
+                  </h3>
+                  <p className="text-xs text-muted-foreground max-w-sm leading-relaxed font-sans">
+                    Enter a prompt on the left or upload a file to extract invoice details and view your live preview.
+                  </p>
+                </div>
+              ) : (
+                /* Document Container Surface */
+                <div className="rounded-2xl border border-border bg-card p-6 sm:p-10 shadow-paper space-y-6 print-sheet relative">
                 
                 {/* 1. CLEAN INVOICE HEADER (Logo/Name on Left | Plain NO. #0001 on Right — NO STATUS BADGE) */}
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-5">
@@ -884,6 +903,7 @@ export default function NewInvoice() {
                   </div>
                 )}
               </div>
+              )}
             </div>
           </div>
         </div>

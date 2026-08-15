@@ -54,9 +54,9 @@ serve(async (req) => {
     const userPromptMessage = `Current Server Date: ${todayISO}
 
 Parse the following prompt into structured invoice JSON with fields:
-- client_name: string (e.g. "Acme Studio", clean client name without trailing prepositions like "for" or "to") or null
-- project_name: string in Title Case (e.g. "Website Design and Development") or null
-- due_date: string (YYYY-MM-DD dynamically calculated from server date) or null
+- client_name: string (e.g. "justnight studio", clean client name without trailing prepositions like "for" or "to") or null
+- project_name: string or null (Return null unless the user explicitly specified a named project like 'Project Alpha'. Do NOT copy the item deliverable into project_name.)
+- due_date: string (YYYY-MM-DD dynamically calculated from current server date) or null
 - items: array of { description: string, quantity: number, unit_price: number }
 - currency: string (e.g. NGN, USD, EUR, GBP) ONLY if currency symbol or code is explicitly mentioned in the prompt, otherwise return null
 - notes: string or null
@@ -136,11 +136,6 @@ Prompt: "${trimmedPrompt}"`;
     // Clean client_name to remove trailing noise words like "for", "to"
     if (rawOutput.client_name) {
       rawOutput.client_name = cleanClientName(rawOutput.client_name);
-    }
-
-    // Format project_name nicely
-    if (rawOutput.project_name) {
-      rawOutput.project_name = toTitleCase(rawOutput.project_name);
     }
 
     // Always enforce strict explicit currency precedence
@@ -271,17 +266,21 @@ function parseWithRules(text: string, todayISO: string): any {
     client_name = cleanClientName(clientMatch[1]);
   }
 
-  // Detect Project / Deliverable (e.g. "website design and development")
-  let project_name: string | null = null;
+  // Detect Item deliverable (e.g. "website design and development")
   let serviceDesc: string | null = null;
-
-  const projectMatch = text.match(/(?:for|deliverable|project|service|services|task)\s+([a-zA-Z0-9\s&'-]+?)(?=\s+(?:due|in\s+\d+|worth|\$|₦|€|£|amount|client|\.|$))/i);
-  if (projectMatch && projectMatch[1]) {
-    const rawMatch = projectMatch[1].trim();
+  const serviceMatch = text.match(/(?:for|deliverable|service|services|task)\s+([a-zA-Z0-9\s&'-]+?)(?=\s+(?:due|in\s+\d+|worth|\$|₦|€|£|amount|client|\.|$))/i);
+  if (serviceMatch && serviceMatch[1]) {
+    const rawMatch = serviceMatch[1].trim();
     if (rawMatch.toLowerCase() !== (client_name || "").toLowerCase()) {
-      project_name = toTitleCase(rawMatch);
-      serviceDesc = project_name;
+      serviceDesc = rawMatch;
     }
+  }
+
+  // Detect explicit project name ONLY if explicitly named as "project ..."
+  let project_name: string | null = null;
+  const explicitProjMatch = text.match(/project\s+([a-zA-Z0-9\s&'-]+?)(?=\s+(?:due|in\s+\d+|worth|\$|₦|€|£|amount|client|\.|$))/i);
+  if (explicitProjMatch && explicitProjMatch[1]) {
+    project_name = toTitleCase(explicitProjMatch[1].trim());
   }
 
   // Detect Amount
@@ -308,12 +307,13 @@ function parseWithRules(text: string, todayISO: string): any {
     }
   }
 
-  // Detect Dynamic Due Date (from server date todayISO)
+  // Detect Dynamic Due Date (calculated relative to todayISO)
   let due_date: string | null = null;
   const daysMatch = text.match(/due\s+(?:in\s+)?(\d+)\s*day/i);
   if (daysMatch && daysMatch[1]) {
     const days = parseInt(daysMatch[1], 10);
-    const d = new Date(new Date(todayISO).getTime() + days * 86_400_000);
+    const serverDate = new Date(todayISO);
+    const d = new Date(serverDate.getTime() + days * 86_400_000);
     due_date = d.toISOString().slice(0, 10);
   }
 
