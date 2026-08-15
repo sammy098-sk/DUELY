@@ -132,36 +132,42 @@ export type Database = {
           address: string
           bank_details: string
           business_name: string
+          company_logo_url: string | null
           contact_email: string
           created_at: string
           default_currency: string
           id: string
           phone: string
           reminders_enabled: boolean
+          signature_url: string | null
           updated_at: string
         }
         Insert: {
           address?: string
           bank_details?: string
           business_name?: string
+          company_logo_url?: string | null
           contact_email?: string
           created_at?: string
           default_currency?: string
           id: string
           phone?: string
           reminders_enabled?: boolean
+          signature_url?: string | null
           updated_at?: string
         }
         Update: {
           address?: string
           bank_details?: string
           business_name?: string
+          company_logo_url?: string | null
           contact_email?: string
           created_at?: string
           default_currency?: string
           id?: string
           phone?: string
           reminders_enabled?: boolean
+          signature_url?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -49,8 +49,9 @@ export default function Settings() {
       const url = await uploadBrandingImage(user.id, e.target.files[0], "logo");
       setForm((prev) => ({ ...prev, company_logo_url: url }));
       toast.success("Company logo uploaded.");
-    } catch {
-      toast.error("Failed to upload logo.");
+    } catch (err: any) {
+      console.error("Failed to upload logo:", err);
+      toast.error(`Failed to upload logo: ${err?.message || "Unknown error"}`);
     } finally {
       setUploadingLogo(false);
     }
@@ -63,8 +64,9 @@ export default function Settings() {
       const url = await uploadBrandingImage(user.id, e.target.files[0], "signature");
       setForm((prev) => ({ ...prev, signature_url: url }));
       toast.success("Signature uploaded.");
-    } catch {
-      toast.error("Failed to upload signature.");
+    } catch (err: any) {
+      console.error("Failed to upload signature:", err);
+      toast.error(`Failed to upload signature: ${err?.message || "Unknown error"}`);
     } finally {
       setUploadingSig(false);
     }
@@ -73,10 +75,29 @@ export default function Settings() {
   async function save() {
     if (!user) return;
     setBusy(true);
-    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form } as any);
+    const payload = {
+      id: user.id,
+      ...form,
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log("Saving settings for authenticated user:", {
+      authenticatedUserId: user.id,
+      profileId: user.id,
+      payload,
+    });
+
+    const { error } = await supabase.from("profiles").upsert(payload);
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      console.error("Failed to save settings:", {
+        error,
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      toast.error(`Failed to save: ${error.message}`);
       return;
     }
     toast.success("Settings saved.");

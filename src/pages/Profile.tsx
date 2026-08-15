@@ -85,8 +85,9 @@ export default function ProfilePage() {
       const url = await uploadBrandingImage(user.id, e.target.files[0], "logo");
       setForm((prev) => ({ ...prev, company_logo_url: url }));
       toast.success("Company logo uploaded.");
-    } catch {
-      toast.error("Failed to upload logo.");
+    } catch (err: any) {
+      console.error("Failed to upload logo:", err);
+      toast.error(`Failed to upload logo: ${err?.message || "Unknown error"}`);
     } finally {
       setUploadingLogo(false);
     }
@@ -99,8 +100,9 @@ export default function ProfilePage() {
       const url = await uploadBrandingImage(user.id, e.target.files[0], "signature");
       setForm((prev) => ({ ...prev, signature_url: url }));
       toast.success("Signature uploaded.");
-    } catch {
-      toast.error("Failed to upload signature.");
+    } catch (err: any) {
+      console.error("Failed to upload signature:", err);
+      toast.error(`Failed to upload signature: ${err?.message || "Unknown error"}`);
     } finally {
       setUploadingSig(false);
     }
@@ -109,25 +111,47 @@ export default function ProfilePage() {
   async function saveProfile() {
     if (!user) return;
     setBusy(true);
-    try {
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        business_name: form.business_name,
-        contact_email: form.contact_email,
-        phone: form.phone,
-        address: form.address,
-        bank_details: form.bank_details,
-        default_currency: form.default_currency,
-        reminders_enabled: form.reminders_enabled,
-        company_logo_url: form.company_logo_url,
-        signature_url: form.signature_url,
-        updated_at: new Date().toISOString(),
-      } as any);
+    
+    const payload = {
+      id: user.id,
+      business_name: form.business_name,
+      contact_email: form.contact_email,
+      phone: form.phone,
+      address: form.address,
+      bank_details: form.bank_details,
+      default_currency: form.default_currency,
+      reminders_enabled: form.reminders_enabled,
+      company_logo_url: form.company_logo_url,
+      signature_url: form.signature_url,
+      updated_at: new Date().toISOString(),
+    };
 
-      if (error) throw error;
+    console.log("Saving profile for authenticated user:", {
+      authenticatedUserId: user.id,
+      profileId: user.id,
+      payload,
+    });
+
+    try {
+      const { error } = await supabase.from("profiles").upsert(payload);
+
+      if (error) {
+        console.error("Failed to save profile settings:", {
+          error,
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        toast.error(`Failed to save: ${error.message}`);
+        return;
+      }
+
       toast.success("Profile & Business Settings saved successfully.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save settings.");
+    } catch (err: any) {
+      console.error("Unexpected error during profile save:", err);
+      const msg = err?.message || (typeof err === "string" ? err : "Failed to save settings.");
+      toast.error(`Failed to save: ${msg}`);
     } finally {
       setBusy(false);
     }
