@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
+import { useTheme } from "@/hooks/useTheme";
+import { DuelyFooter } from "@/components/DuelyFooter";
 import {
   Building2,
   UserRound,
@@ -72,10 +74,12 @@ const tutorialSteps: StepData[] = [
 ];
 
 export default function TutorialPage() {
+  const { resolvedTheme } = useTheme();
+
   return (
     <AppShell pageTitle="Tutorial">
-      <div className="flex-1 p-6 lg:p-12 bg-background">
-        <div className="mx-auto max-w-5xl space-y-4">
+      <div className="flex-1 p-6 lg:p-12 bg-background flex flex-col justify-between">
+        <div className="mx-auto max-w-5xl space-y-4 w-full">
           {/* Editorial Page Header */}
           <div className="text-center max-w-2xl mx-auto pt-4 pb-8 space-y-3">
             <span className="label-caps font-bold text-xs tracking-widest text-emerald-600 dark:text-emerald-400">
@@ -94,6 +98,11 @@ export default function TutorialPage() {
             {tutorialSteps.map((step) => (
               <TutorialStepItem key={step.number} step={step} />
             ))}
+          </div>
+
+          {/* Shared Authenticated DuelyFooter */}
+          <div className="pt-8">
+            <DuelyFooter isDark={resolvedTheme === "dark"} context="authenticated" />
           </div>
         </div>
       </div>
