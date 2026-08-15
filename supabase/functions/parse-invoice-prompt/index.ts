@@ -48,6 +48,21 @@ serve(async (req) => {
     const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
 
+    const systemMessage =
+      "Return JSON only. No markdown fences. No explanations. Do not invent missing values. Use null when an optional value isn't provided.";
+
+    const userPromptMessage = `Current Server Date: ${todayISO}
+
+Parse the following prompt into structured invoice JSON with fields:
+- client_name: string (e.g. "Acme Studio", clean client name without trailing prepositions like "for" or "to") or null
+- project_name: string in Title Case (e.g. "Website Design and Development") or null
+- due_date: string (YYYY-MM-DD dynamically calculated from server date) or null
+- items: array of { description: string, quantity: number, unit_price: number }
+- currency: string (e.g. NGN, USD, EUR, GBP) ONLY if currency symbol or code is explicitly mentioned in the prompt, otherwise return null
+- notes: string or null
+
+Prompt: "${trimmedPrompt}"`;
+
     if (anthropicApiKey) {
       try {
         const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -60,12 +75,11 @@ serve(async (req) => {
           body: JSON.stringify({
             model: "claude-3-5-sonnet-20241022",
             max_tokens: 1000,
-            system:
-              "Return JSON only. No markdown fences. No explanations. Do not invent missing values. Use null when an optional value isn't provided.",
+            system: systemMessage,
             messages: [
               {
                 role: "user",
-                content: `Current Server Date: ${todayISO}\n\nParse the following prompt into structured invoice JSON with fields:\n- client_name: string or null\n- project_name: string or null\n- due_date: string (YYYY-MM-DD) or null\n- items: array of { description: string, quantity: number, unit_price: number }\n- currency: string (e.g. NGN, USD, EUR, GBP) ONLY if currency symbol or code is explicitly mentioned in the prompt, otherwise return null\n- notes: string or null\n\nPrompt: "${trimmedPrompt}"`,
+                content: userPromptMessage,
               },
             ],
           }),
@@ -94,12 +108,11 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content:
-                  "Return JSON only. No markdown fences. No explanations. Do not invent missing values. Use null when an optional value isn't provided.",
+                content: systemMessage,
               },
               {
                 role: "user",
-                content: `Current Server Date: ${todayISO}\n\nParse the following prompt into structured invoice JSON with fields:\n- client_name: string or null\n- project_name: string or null\n- due_date: string (YYYY-MM-DD) or null\n- items: array of { description: string, quantity: number, unit_price: number }\n- currency: string (e.g. NGN, USD, EUR, GBP) ONLY if currency symbol or code is explicitly mentioned in the prompt, otherwise return null\n- notes: string or null\n\nPrompt: "${trimmedPrompt}"`,
+                content: userPromptMessage,
               },
             ],
           }),
@@ -120,11 +133,21 @@ serve(async (req) => {
       rawOutput = parseWithRules(trimmedPrompt, todayISO);
     }
 
+    // Clean client_name to remove trailing noise words like "for", "to"
+    if (rawOutput.client_name) {
+      rawOutput.client_name = cleanClientName(rawOutput.client_name);
+    }
+
+    // Format project_name nicely
+    if (rawOutput.project_name) {
+      rawOutput.project_name = toTitleCase(rawOutput.project_name);
+    }
+
     // Always enforce strict explicit currency precedence
     rawOutput.currency = explicitCurrency;
 
     // 3. Strict Validation
-    const validationError = validateInvoiceData(rawOutput, trimmedPrompt);
+    const validationError = validateInvoiceData(rawOutput);
     if (validationError) {
       return new Response(JSON.stringify({ error: validationError }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -138,7 +161,7 @@ serve(async (req) => {
       project_name: rawOutput.project_name ? String(rawOutput.project_name).trim() : null,
       due_date: rawOutput.due_date ? String(rawOutput.due_date).trim() : null,
       items: (rawOutput.items || []).map((it: any) => ({
-        description: String(it.description || "Service").trim(),
+        description: String(it.description).trim(),
         quantity: Math.max(1, Number(it.quantity) || 1),
         unit_price: Math.max(0, Number(it.unit_price) || 0),
       })),
@@ -183,14 +206,38 @@ function detectExplicitCurrency(text: string): string | null {
   return null;
 }
 
+/** Clean client_name from trailing preposition words */
+function cleanClientName(name: string | null): string | null {
+  if (!name) return null;
+  let cleaned = name.trim();
+  cleaned = cleaned.replace(/\s+(?:for|to|worth|of|amounting|in|due)$/i, "").trim();
+  return cleaned || null;
+}
+
+/** Format string into Title Case */
+function toTitleCase(str: string): string {
+  if (!str) return "";
+  const lowerWords = ["and", "for", "of", "the", "in", "to", "a", "an", "on", "at", "by", "with"];
+  return str
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, idx) => {
+      if (idx > 0 && lowerWords.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
 /** Validate output fields strictly */
-function validateInvoiceData(data: any, originalPrompt: string): string | null {
-  // Check client_name
+function validateInvoiceData(data: any): string | null {
+  // 1. Check client_name
   if (!data || !data.client_name || typeof data.client_name !== "string" || !data.client_name.trim()) {
     return "Missing client — please specify who the invoice is for.";
   }
 
-  // Check items & amounts
+  // 2. Check items & amounts
   if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
     return "Missing amount — please specify how much to invoice for.";
   }
@@ -198,7 +245,7 @@ function validateInvoiceData(data: any, originalPrompt: string): string | null {
   let totalAmount = 0;
   for (const item of data.items) {
     if (!item.description || typeof item.description !== "string" || !item.description.trim()) {
-      return "Invalid item description in generated output.";
+      return "Missing item description — please specify what the invoice is for.";
     }
     const qty = Number(item.quantity);
     const price = Number(item.unit_price);
@@ -217,21 +264,24 @@ function validateInvoiceData(data: any, originalPrompt: string): string | null {
 
 /** Fallback rule-based parser */
 function parseWithRules(text: string, todayISO: string): any {
-  const lower = text.toLowerCase();
-
   // Detect Client
   let client_name: string | null = null;
   const clientMatch = text.match(/(?:for|to|client)\s+([A-Z0-9][A-Za-z0-9\s&'-]+?)(?=\s+(?:for|for\s+₦|for\s+\$|due|amount|worth|in|\$|₦|€|£|\d|$))/i);
   if (clientMatch && clientMatch[1]) {
-    client_name = clientMatch[1].trim();
+    client_name = cleanClientName(clientMatch[1]);
   }
 
-  // Detect Project / Deliverable
+  // Detect Project / Deliverable (e.g. "website design and development")
   let project_name: string | null = null;
+  let serviceDesc: string | null = null;
+
   const projectMatch = text.match(/(?:for|deliverable|project|service|services|task)\s+([a-zA-Z0-9\s&'-]+?)(?=\s+(?:due|in\s+\d+|worth|\$|₦|€|£|amount|client|\.|$))/i);
-  if (projectMatch && projectMatch[1] && projectMatch[1].toLowerCase() !== (client_name || "").toLowerCase()) {
-    project_name = projectMatch[1].trim();
-    project_name = project_name.charAt(0).toUpperCase() + project_name.slice(1);
+  if (projectMatch && projectMatch[1]) {
+    const rawMatch = projectMatch[1].trim();
+    if (rawMatch.toLowerCase() !== (client_name || "").toLowerCase()) {
+      project_name = toTitleCase(rawMatch);
+      serviceDesc = project_name;
+    }
   }
 
   // Detect Amount
@@ -258,19 +308,19 @@ function parseWithRules(text: string, todayISO: string): any {
     }
   }
 
-  // Detect Due Date
+  // Detect Dynamic Due Date (from server date todayISO)
   let due_date: string | null = null;
   const daysMatch = text.match(/due\s+(?:in\s+)?(\d+)\s*day/i);
   if (daysMatch && daysMatch[1]) {
     const days = parseInt(daysMatch[1], 10);
-    const d = new Date(Date.now() + days * 86_400_000);
+    const d = new Date(new Date(todayISO).getTime() + days * 86_400_000);
     due_date = d.toISOString().slice(0, 10);
   }
 
   const items: Item[] = [];
-  if (totalAmount > 0) {
+  if (totalAmount > 0 && serviceDesc) {
     items.push({
-      description: project_name || "Services rendered",
+      description: serviceDesc,
       quantity: 1,
       unit_price: totalAmount,
     });

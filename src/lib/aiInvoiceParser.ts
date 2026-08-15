@@ -41,6 +41,28 @@ export function detectExplicitCurrency(text: string): string | null {
   return null;
 }
 
+export function cleanClientName(name: string | null): string | null {
+  if (!name) return null;
+  let cleaned = name.trim();
+  cleaned = cleaned.replace(/\s+(?:for|to|worth|of|amounting|in|due)$/i, "").trim();
+  return cleaned || null;
+}
+
+export function toTitleCase(str: string): string {
+  if (!str) return "";
+  const lowerWords = ["and", "for", "of", "the", "in", "to", "a", "an", "on", "at", "by", "with"];
+  return str
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, idx) => {
+      if (idx > 0 && lowerWords.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
 export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
   const text = prompt.trim();
   if (!text) {
@@ -53,14 +75,14 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
     };
   }
 
-  // Currency detection (returns null if not explicitly mentioned)
+  // Explicit currency detection
   const currency = detectExplicitCurrency(text);
 
   // Detect client name
   let clientName: string | null = null;
   const clientMatch = text.match(/(?:for|to|client)\s+([A-Z0-9][A-Za-z0-9\s&'-]+?)(?=\s+(?:for|for\s+₦|for\s+\$|due|amount|worth|in|\$|₦|€|£|\d|$))/i);
   if (clientMatch && clientMatch[1]) {
-    clientName = clientMatch[1].trim();
+    clientName = cleanClientName(clientMatch[1]);
   }
 
   if (!clientName) {
@@ -73,12 +95,17 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
     };
   }
 
-  // Detect project / deliverables
+  // Detect project / deliverable
   let projectName: string | null = null;
+  let serviceDesc: string | null = null;
+
   const projectMatch = text.match(/(?:for|deliverable|project|service|services|task)\s+([a-zA-Z0-9\s&'-]+?)(?=\s+(?:due|in\s+\d+|worth|\$|₦|€|£|amount|client|\.|$))/i);
-  if (projectMatch && projectMatch[1] && projectMatch[1].toLowerCase() !== clientName.toLowerCase()) {
-    projectName = projectMatch[1].trim();
-    projectName = projectName.charAt(0).toUpperCase() + projectName.slice(1);
+  if (projectMatch && projectMatch[1]) {
+    const rawMatch = projectMatch[1].trim();
+    if (rawMatch.toLowerCase() !== (clientName || "").toLowerCase()) {
+      projectName = toTitleCase(rawMatch);
+      serviceDesc = projectName;
+    }
   }
 
   // Detect money amount
@@ -115,6 +142,16 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
     };
   }
 
+  if (!serviceDesc) {
+    return {
+      clientName,
+      projectName: null,
+      currency,
+      items: [],
+      error: "Missing item description — please specify what the invoice is for.",
+    };
+  }
+
   // Detect due days
   let dueDays = 14;
   const daysMatch = text.match(/due\s+(?:in\s+)?(\d+)\s*day/i);
@@ -124,7 +161,7 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
 
   const items = [
     {
-      description: projectName || "Services rendered",
+      description: serviceDesc,
       quantity: 1,
       unit_price: totalAmount,
     },
@@ -132,7 +169,7 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
 
   return {
     clientName,
-    projectName: projectName || `${clientName} Project`,
+    projectName: projectName || serviceDesc,
     currency,
     items,
     dueDays,

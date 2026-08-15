@@ -30,7 +30,7 @@ import {
   type LineItem,
   type InvoiceStatus,
 } from "@/lib/invoice";
-import { parsePromptToInvoice, countWords, type ParsedInvoiceData } from "@/lib/aiInvoiceParser";
+import { parsePromptToInvoice, countWords, toTitleCase, type ParsedInvoiceData } from "@/lib/aiInvoiceParser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -261,14 +261,21 @@ export default function NewInvoice() {
         });
       }
 
-      if (parsedResult.project_name) {
-        setProjectName(String(parsedResult.project_name).trim());
-      }
-      if (parsedResult.due_date) {
-        setDueDate(String(parsedResult.due_date).trim());
-      }
       if (parsedResult.items && parsedResult.items.length > 0) {
         setItems(parsedResult.items);
+      }
+
+      const explicitProj = parsedResult.project_name ? String(parsedResult.project_name).trim() : null;
+      const itemDesc = parsedResult.items?.[0]?.description ? String(parsedResult.items[0].description).trim() : null;
+
+      if (explicitProj) {
+        setProjectName(toTitleCase(explicitProj));
+      } else if (itemDesc) {
+        setProjectName(toTitleCase(itemDesc));
+      }
+
+      if (parsedResult.due_date) {
+        setDueDate(String(parsedResult.due_date).trim());
       }
       if (parsedResult.notes) {
         setNotes(String(parsedResult.notes).trim());
