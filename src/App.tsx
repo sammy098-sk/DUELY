@@ -20,6 +20,10 @@ import ProfilePage from "./pages/Profile";
 import ComingSoonPage from "./pages/ComingSoon";
 import LandingPage from "./pages/Landing";
 import WelcomePage from "./pages/Welcome";
+import EstimatesPage from "./pages/Estimates";
+import ReceiptsPage from "./pages/Receipts";
+import RevenueForecastPage from "./pages/RevenueForecast";
+import TutorialPage from "./pages/Tutorial";
 
 // Public Unauthenticated Pages
 import AboutPage from "./pages/About";
@@ -172,11 +176,7 @@ export function App() {
               path="/estimates" 
               element={
                 <ProtectedRoute>
-                  <ComingSoonPage 
-                    title="Estimates & Quotes" 
-                    description="Create, send, and convert client project estimates into active invoices with one click."
-                    icon={FileSpreadsheet}
-                  />
+                  <EstimatesPage />
                 </ProtectedRoute>
               } 
             />
@@ -184,11 +184,7 @@ export function App() {
               path="/receipts" 
               element={
                 <ProtectedRoute>
-                  <ComingSoonPage 
-                    title="Payment Receipts" 
-                    description="Automatically issue branded proof of payment receipts whenever an invoice is settled."
-                    icon={Receipt}
-                  />
+                  <ReceiptsPage />
                 </ProtectedRoute>
               } 
             />
@@ -196,11 +192,7 @@ export function App() {
               path="/revenue-forecast" 
               element={
                 <ProtectedRoute>
-                  <ComingSoonPage 
-                    title="Revenue Forecast" 
-                    description="Predict upcoming income streams based on active invoices, recurring clients, and historical payout dates."
-                    icon={TrendingUp}
-                  />
+                  <RevenueForecastPage />
                 </ProtectedRoute>
               } 
             />
@@ -208,11 +200,7 @@ export function App() {
               path="/tutorial" 
               element={
                 <ProtectedRoute>
-                  <ComingSoonPage 
-                    title="Duely Workspace Tutorial" 
-                    description="Learn best practices for automated invoice chasing, custom branding setups, and payment notifications."
-                    icon={GraduationCap}
-                  />
+                  <TutorialPage />
                 </ProtectedRoute>
               } 
             />
