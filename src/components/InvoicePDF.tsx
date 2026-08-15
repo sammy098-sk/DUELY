@@ -440,8 +440,10 @@ export function InvoicePDF({
 
 /** Utility to generate PDF Blob and trigger immediate browser file download */
 export async function downloadInvoicePDF(props: InvoicePDFProps) {
-  const cleanNum = props.number.replace(/^#/, "").replace(/^INV-/, "");
-  const filename = `Invoice-${cleanNum}.pdf`;
+  const displayNum = props.number.startsWith("#")
+    ? props.number
+    : `#${props.number.replace(/^INV-/, "")}`;
+  const filename = `Invoice-${displayNum}.pdf`;
 
   const blob = await pdf(<InvoicePDF {...props} />).toBlob();
   const url = URL.createObjectURL(blob);

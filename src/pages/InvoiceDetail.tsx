@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { BellRing, CheckCircle2, Download, Printer, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { downloadInvoicePDF } from "@/components/InvoicePDF";
+import { InvoiceSaveMenu } from "@/components/InvoiceSaveMenu";
 import { supabase } from "@/integrations/supabase/client";
 import {
   computeTotals,
@@ -25,13 +26,14 @@ export default function InvoiceDetail() {
   const { data } = useQuery({
     queryKey: ["invoice", id],
     queryFn: async () => {
+      const targetId = id || "";
       const [inv, items, reminders, profile] = await Promise.all([
-        supabase.from("invoices").select("*").eq("id", id).single(),
-        supabase.from("invoice_items").select("*").eq("invoice_id", id).order("position"),
+        supabase.from("invoices").select("*").eq("id", targetId).single(),
+        supabase.from("invoice_items").select("*").eq("invoice_id", targetId).order("position"),
         supabase
           .from("reminders")
           .select("*")
-          .eq("invoice_id", id)
+          .eq("invoice_id", targetId)
           .order("sent_at", { ascending: false }),
         supabase.from("profiles").select("*").maybeSingle(),
       ]);
@@ -191,8 +193,17 @@ export default function InvoiceDetail() {
     }
   }
 
+  const headerActions = (
+    <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
+      <InvoiceSaveMenu
+        onDownloadPDF={handleDownloadPDF}
+        downloadingPDF={downloadingPDF}
+      />
+    </div>
+  );
+
   return (
-    <AppShell pageTitle={`Invoice ${displayNum}`}>
+    <AppShell pageTitle={`Invoice ${displayNum}`} headerActions={headerActions}>
       <div className="space-y-6 p-4 lg:p-8 max-w-4xl mx-auto font-sans">
         {/* Action Toolbar */}
         <div className="no-print flex flex-wrap items-center justify-between gap-3">
@@ -214,14 +225,10 @@ export default function InvoiceDetail() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={downloadingPDF} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
-              {downloadingPDF ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
-              <span>{downloadingPDF ? "Generating PDF…" : "Download PDF"}</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 font-bold text-xs cursor-pointer font-sans">
-              <Printer className="size-3.5" />
-              <span>Print</span>
-            </Button>
+            <InvoiceSaveMenu
+              onDownloadPDF={handleDownloadPDF}
+              downloadingPDF={downloadingPDF}
+            />
           </div>
         </div>
 

@@ -138,14 +138,14 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex flex-col antialiased">
       {/* ── TOP NAVIGATION BAR (Fixed h-14) ─────────────────────────── */}
-      <header className="no-print h-14 shrink-0 border-b border-border/80 bg-card/90 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between shadow-2xs z-40">
+      <header className="no-print h-14 shrink-0 border-b border-border/80 bg-card/90 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between shadow-2xs z-40 w-full min-w-0">
         {/* Left Side: DUELY Wordmark + Secondary Page Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
           {/* Mobile Sheet Trigger */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger
               aria-label="Open navigation menu"
-              className="lg:hidden inline-flex size-9 items-center justify-center rounded-lg text-foreground hover:bg-muted transition-colors"
+              className="lg:hidden inline-flex size-9 items-center justify-center rounded-lg text-foreground hover:bg-muted transition-colors shrink-0"
             >
               <Menu className="size-5" />
             </SheetTrigger>
@@ -165,31 +165,32 @@ export function AppShell({ children, pageTitle = "Invoice Generator", headerActi
           </Sheet>
 
           {/* DUELY Brand Wordmark */}
-          <Link to="/welcome" className="flex items-center gap-2 group">
-            <span className="font-sans text-base font-extrabold uppercase tracking-[0.22em] text-foreground transition-opacity group-hover:opacity-85">
+          <Link to="/welcome" className="flex items-center gap-2 group shrink-0">
+            <span className="font-sans text-base font-extrabold uppercase tracking-[0.18em] sm:tracking-[0.22em] text-foreground transition-opacity group-hover:opacity-85">
               DUELY
             </span>
           </Link>
 
-          <span className="hidden sm:inline-block text-border font-light">/</span>
+          <span className="hidden sm:inline-block text-border font-light shrink-0">/</span>
 
           {/* Page Title (Secondary to Duely Brand) */}
-          <span className="hidden sm:inline-block font-sans text-sm font-semibold text-muted-foreground">
+          <span className="hidden sm:inline-block font-sans text-sm font-semibold text-muted-foreground truncate max-w-[140px] md:max-w-[250px]">
             {pageTitle}
           </span>
         </div>
 
         {/* Right Side: Help affordance + Action CTA buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
           <button
             type="button"
+            aria-label="Do you need help?"
             onClick={() =>
               toast.info("Duely Help: Create an invoice by prompt or file, review live preview, and send.")
             }
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors p-2 sm:px-2.5 sm:py-1 rounded-md cursor-pointer shrink-0"
           >
-            <HelpCircle className="size-4 text-muted-foreground" />
-            <span className="hidden md:inline">Do you need help?</span>
+            <HelpCircle className="size-4 text-muted-foreground shrink-0" />
+            <span className="hidden sm:inline">Do you need help?</span>
           </button>
 
           {headerActions}

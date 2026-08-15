@@ -18,6 +18,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { downloadInvoicePDF } from "@/components/InvoicePDF";
+import { InvoiceSaveMenu } from "@/components/InvoiceSaveMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -296,43 +297,19 @@ export default function NewInvoice() {
 
   // Header CTA buttons passed into AppShell header Actions slot
   const headerActions = (
-    <div className="flex items-center gap-2.5">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 px-3 text-xs font-semibold gap-1.5 border-border bg-card hover:bg-muted cursor-pointer"
-          >
-            <span>Save / Download</span>
-            <ChevronDown className="size-3.5 opacity-70" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={() => saveInvoice("draft")} disabled={busy} className="gap-2 cursor-pointer text-xs font-medium">
-            <Save className="size-4 text-muted-foreground" />
-            <span>Save Draft</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDownloadPDF} disabled={downloadingPDF} className="gap-2 cursor-pointer text-xs font-medium">
-            {downloadingPDF ? (
-              <Loader2 className="size-4 animate-spin text-primary" />
-            ) : (
-              <Download className="size-4 text-muted-foreground" />
-            )}
-            <span>{downloadingPDF ? "Generating PDF…" : "Download PDF"}</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.print()} className="gap-2 cursor-pointer text-xs font-medium border-t border-border/50">
-            <Printer className="size-4 text-muted-foreground" />
-            <span>Print Invoice</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
+      <InvoiceSaveMenu
+        onSaveDraft={() => saveInvoice("draft")}
+        onDownloadPDF={handleDownloadPDF}
+        savingDraft={busy}
+        downloadingPDF={downloadingPDF}
+      />
 
       <Button
         onClick={() => saveInvoice()}
         disabled={busy}
         size="sm"
-        className="h-9 px-4 text-xs font-bold gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] transition-all shadow-xs cursor-pointer"
+        className="h-9 px-3 sm:px-4 text-xs font-bold gap-1.5 sm:gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] transition-all shadow-xs cursor-pointer shrink-0"
       >
         {busy ? (
           <Loader2 className="size-4 animate-spin" />
