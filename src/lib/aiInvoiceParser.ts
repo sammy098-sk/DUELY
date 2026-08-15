@@ -1,60 +1,87 @@
 export interface ParsedInvoiceData {
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  clientAddress: string;
-  projectName: string;
-  currency: string;
+  clientName: string | null;
+  clientEmail?: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  projectName: string | null;
+  currency: string | null;
   items: Array<{
     description: string;
     quantity: number;
     unit_price: number;
   }>;
-  taxRate: number;
-  discount: number;
-  dueDays: number;
+  taxRate?: number;
+  discount?: number;
+  dueDays?: number;
+  dueDate?: string | null;
   notes?: string;
+  error?: string;
+}
+
+export function detectExplicitCurrency(text: string): string | null {
+  const lower = text.toLowerCase();
+  if (text.includes("₦") || lower.includes("naira") || lower.includes("ngn")) {
+    return "NGN";
+  }
+  if (text.includes("$") || lower.includes("usd") || lower.includes("dollar")) {
+    return "USD";
+  }
+  if (text.includes("€") || lower.includes("eur") || lower.includes("euro")) {
+    return "EUR";
+  }
+  if (text.includes("£") || lower.includes("gbp") || lower.includes("pound")) {
+    return "GBP";
+  }
+  if (lower.includes("cad") || lower.includes("canadian dollar")) {
+    return "CAD";
+  }
+  if (lower.includes("aud") || lower.includes("australian dollar")) {
+    return "AUD";
+  }
+  return null;
 }
 
 export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
   const text = prompt.trim();
-  const lower = text.toLowerCase();
-
-  // Default values
-  let clientName = "";
-  let projectName = "";
-  let currency = "USD";
-  let taxRate = 0;
-  let discount = 0;
-  let dueDays = 14;
-  const items: Array<{ description: string; quantity: number; unit_price: number }> = [];
-
-  // Currency detection
-  if (text.includes("₦") || lower.includes("naira") || lower.includes("ngn")) {
-    currency = "NGN";
-  } else if (text.includes("€") || lower.includes("eur") || lower.includes("euro")) {
-    currency = "EUR";
-  } else if (text.includes("£") || lower.includes("gbp") || lower.includes("pound")) {
-    currency = "GBP";
-  } else if (text.includes("$") || lower.includes("usd") || lower.includes("dollar")) {
-    currency = "USD";
+  if (!text) {
+    return {
+      clientName: null,
+      projectName: null,
+      currency: null,
+      items: [],
+      error: "Please enter a description of the invoice you want to generate.",
+    };
   }
 
-  // Detect client name: e.g. "for Acme Studio", "to Acme Inc", "client Acme"
+  // Currency detection (returns null if not explicitly mentioned)
+  const currency = detectExplicitCurrency(text);
+
+  // Detect client name
+  let clientName: string | null = null;
   const clientMatch = text.match(/(?:for|to|client)\s+([A-Z0-9][A-Za-z0-9\s&'-]+?)(?=\s+(?:for|for\s+₦|for\s+\$|due|amount|worth|in|\$|₦|€|£|\d|$))/i);
   if (clientMatch && clientMatch[1]) {
     clientName = clientMatch[1].trim();
   }
 
-  // Detect project / deliverables: e.g. "website design and development", "logo design", "mobile app consulting"
+  if (!clientName) {
+    return {
+      clientName: null,
+      projectName: null,
+      currency,
+      items: [],
+      error: "Missing client — please specify who the invoice is for.",
+    };
+  }
+
+  // Detect project / deliverables
+  let projectName: string | null = null;
   const projectMatch = text.match(/(?:for|deliverable|project|service|services|task)\s+([a-zA-Z0-9\s&'-]+?)(?=\s+(?:due|in\s+\d+|worth|\$|₦|€|£|amount|client|\.|$))/i);
   if (projectMatch && projectMatch[1] && projectMatch[1].toLowerCase() !== clientName.toLowerCase()) {
     projectName = projectMatch[1].trim();
-    // Capitalize first letter
     projectName = projectName.charAt(0).toUpperCase() + projectName.slice(1);
   }
 
-  // Detect money amount: e.g. "₦420,000", "$1,500", "420000", "1500"
+  // Detect money amount
   const amountMatch = text.match(/(?:₦|\$|€|£|NGN|USD|EUR|GBP)?\s*([\d,]+(?:\.\d{2})?)/);
   let totalAmount = 0;
   if (amountMatch && amountMatch[1]) {
@@ -65,7 +92,6 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
     }
   }
 
-  // Fallback check for numbers if first match failed
   if (totalAmount === 0) {
     const numMatches = text.match(/\b\d[\d,]*\b/g);
     if (numMatches) {
@@ -79,30 +105,36 @@ export function parsePromptToInvoice(prompt: string): ParsedInvoiceData {
     }
   }
 
-  // Detect due days: e.g. "due in 14 days", "14-day due date", "due in 30 days"
+  if (totalAmount <= 0) {
+    return {
+      clientName,
+      projectName,
+      currency,
+      items: [],
+      error: "Missing amount — please specify how much to invoice for.",
+    };
+  }
+
+  // Detect due days
+  let dueDays = 14;
   const daysMatch = text.match(/due\s+(?:in\s+)?(\d+)\s*day/i);
   if (daysMatch && daysMatch[1]) {
     dueDays = parseInt(daysMatch[1], 10);
   }
 
-  // Build primary line item
-  const itemDesc = projectName || "Design and development services";
-  items.push({
-    description: itemDesc,
-    quantity: 1,
-    unit_price: totalAmount || 420000,
-  });
+  const items = [
+    {
+      description: projectName || "Services rendered",
+      quantity: 1,
+      unit_price: totalAmount,
+    },
+  ];
 
   return {
-    clientName: clientName || "Acme Studio",
-    clientEmail: clientName ? `${clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}@example.com` : "billing@acmestudio.com",
-    clientPhone: "+234 801 234 5678",
-    clientAddress: "Lagos, Nigeria",
-    projectName: projectName || "Website Redesign & Development",
-    currency: totalAmount > 0 ? currency : (currency === "USD" && text.includes("₦") ? "NGN" : currency),
+    clientName,
+    projectName: projectName || `${clientName} Project`,
+    currency,
     items,
-    taxRate,
-    discount,
     dueDays,
     notes: "Payment is due by the stated due date. Please reference the invoice number when making payment.",
   };

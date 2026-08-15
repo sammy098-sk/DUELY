@@ -87,6 +87,7 @@ export default function NewInvoice() {
 
   const [busy, setBusy] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [defaultCurrency, setDefaultCurrency] = useState("NGN");
 
   // Load existing profile details and next sequential invoice number
   useEffect(() => {
@@ -118,7 +119,10 @@ export default function NewInvoice() {
           companyLogoUrl: ext.company_logo_url || "",
           signatureUrl: ext.signature_url || "",
         });
-        if (ext.default_currency) setCurrency(ext.default_currency);
+        if (ext.default_currency) {
+          setCurrency(ext.default_currency);
+          setDefaultCurrency(ext.default_currency);
+        }
       }
     })();
   }, [user]);
@@ -126,7 +130,7 @@ export default function NewInvoice() {
   const totals = computeTotals(items, taxRate, discount);
   const wordCount = countWords(prompt);
 
-  // Handle AI prompt generation
+  // Handle AI prompt generation via Edge Function & strict validation
   async function handleGeneratePrompt() {
     if (!prompt.trim()) {
       toast.error("Please enter a description of the invoice you want to generate.");
@@ -134,15 +138,148 @@ export default function NewInvoice() {
     }
     setGenStatus("generating");
     try {
-      await new Promise((res) => setTimeout(res, 800));
-      const parsed = parsePromptToInvoice(prompt);
-      applyParsedInvoice(parsed);
+      let parsedResult: any = null;
+      let funcError: string | null = null;
+
+      // Invoke Edge Function parse-invoice-prompt
+      const { data, error } = await supabase.functions.invoke("parse-invoice-prompt", {
+        body: { prompt: prompt.trim() },
+      });
+
+      if (error) {
+        console.warn("Edge Function call warning, falling back to local parser:", error);
+      } else if (data) {
+        if (data.error) {
+          funcError = data.error;
+        } else {
+          parsedResult = data;
+        }
+      }
+
+      if (funcError) {
+        setGenStatus("error");
+        toast.error(funcError);
+        return;
+      }
+
+      // Fallback local parser if Edge Function unavailable
+      if (!parsedResult) {
+        const localParsed = parsePromptToInvoice(prompt);
+        if (localParsed.error) {
+          setGenStatus("error");
+          toast.error(localParsed.error);
+          return;
+        }
+        parsedResult = {
+          client_name: localParsed.clientName,
+          project_name: localParsed.projectName,
+          due_date: localParsed.dueDays ? inDays(localParsed.dueDays) : null,
+          items: localParsed.items,
+          currency: localParsed.currency,
+          notes: localParsed.notes,
+        };
+      }
+
+      // Strict validation checks
+      if (!parsedResult.client_name || !String(parsedResult.client_name).trim()) {
+        setGenStatus("error");
+        toast.error("Missing client — please specify who the invoice is for.");
+        return;
+      }
+
+      if (!parsedResult.items || !Array.isArray(parsedResult.items) || parsedResult.items.length === 0) {
+        setGenStatus("error");
+        toast.error("Missing amount — please specify how much to invoice for.");
+        return;
+      }
+
+      let validTotal = 0;
+      for (const item of parsedResult.items) {
+        const qty = Number(item.quantity) || 0;
+        const price = Number(item.unit_price) || 0;
+        if (qty > 0 && price >= 0) {
+          validTotal += qty * price;
+        }
+      }
+
+      if (validTotal <= 0) {
+        setGenStatus("error");
+        toast.error("Missing amount — please specify how much to invoice for.");
+        return;
+      }
+
+      // Currency Precedence:
+      // If currency is null, apply user's saved default_currency!
+      const finalCurrency = parsedResult.currency || defaultCurrency || "NGN";
+      setCurrency(finalCurrency);
+
+      // Inline Client Matching:
+      // Search existing user invoices/clients case-insensitively
+      let matchedClient: { name: string; email: string; phone: string; address: string } | null = null;
+      const targetClientName = String(parsedResult.client_name).trim();
+
+      if (user) {
+        const { data: invClients } = await supabase
+          .from("invoices")
+          .select("client_name, client_email, client_phone, client_address")
+          .eq("user_id", user.id);
+
+        if (invClients && invClients.length > 0) {
+          const targetLower = targetClientName.toLowerCase();
+          const found = invClients.find(
+            (c) => c.client_name && c.client_name.trim().toLowerCase() === targetLower
+          );
+          if (found) {
+            matchedClient = {
+              name: found.client_name,
+              email: found.client_email || "",
+              phone: found.client_phone || "",
+              address: found.client_address || "",
+            };
+          }
+        }
+      }
+
+      if (matchedClient) {
+        setClient({
+          name: matchedClient.name,
+          email: matchedClient.email,
+          phone: matchedClient.phone,
+          address: matchedClient.address,
+        });
+      } else {
+        // Client not found -> set name only, show warning, DO NOT auto-create client record
+        setClient((prev) => ({
+          ...prev,
+          name: targetClientName,
+          email: "",
+          phone: "",
+          address: "",
+        }));
+        toast.info("Client not found — select an existing client or add them from Clients.", {
+          duration: 5000,
+        });
+      }
+
+      if (parsedResult.project_name) {
+        setProjectName(String(parsedResult.project_name).trim());
+      }
+      if (parsedResult.due_date) {
+        setDueDate(String(parsedResult.due_date).trim());
+      }
+      if (parsedResult.items && parsedResult.items.length > 0) {
+        setItems(parsedResult.items);
+      }
+      if (parsedResult.notes) {
+        setNotes(String(parsedResult.notes).trim());
+      }
+
       setGenStatus("success");
       toast.success("Invoice generated! Preview updated.");
       setTimeout(() => setGenStatus("idle"), 2000);
-    } catch {
+    } catch (err: any) {
       setGenStatus("error");
-      toast.error("Could not parse prompt. Please try a different description.");
+      toast.error(err?.message || "Could not parse prompt. Please try a different description.");
     }
   }
 
@@ -157,7 +294,7 @@ export default function NewInvoice() {
     if (parsed.clientName) {
       setClient((prev) => ({
         ...prev,
-        name: parsed.clientName,
+        name: parsed.clientName || prev.name,
         email: parsed.clientEmail || prev.email,
         phone: parsed.clientPhone || prev.phone,
         address: parsed.clientAddress || prev.address,
@@ -165,6 +302,7 @@ export default function NewInvoice() {
     }
     if (parsed.projectName) setProjectName(parsed.projectName);
     if (parsed.currency) setCurrency(parsed.currency);
+    else setCurrency(defaultCurrency);
     if (parsed.dueDays) setDueDate(inDays(parsed.dueDays));
     if (parsed.items && parsed.items.length > 0) setItems(parsed.items);
     if (parsed.notes) setNotes(parsed.notes);
